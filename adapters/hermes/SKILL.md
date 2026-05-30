@@ -11,7 +11,19 @@ metadata:
 # Nessie
 
 Use this skill when the user asks to use Nessie, asks what they know about a
-topic, references past AI conversations, or wants a reusable context saved.
+topic, references prior work or AI conversations, asks for a brief grounded in
+their past context, asks what sources are available, or wants reusable
+knowledge saved.
+
+For research, synthesis, and write-back behavior, follow:
+
+```text
+docs/AGENT_WORKFLOWS.md
+```
+
+Read that workflow before substantial research, source browsing, or context
+creation. Use Hermes MCP tools when available; use the scripts below as the
+fallback command surface.
 
 ## Preferred Hermes MCP Setup
 
@@ -45,6 +57,9 @@ Search:
 
 ```bash
 scripts/search.sh "query"
+scripts/search.sh "query" context
+scripts/search.sh "query" transcript
+scripts/search.sh "query" obsidian
 ```
 
 Read:
@@ -57,6 +72,8 @@ List sources:
 
 ```bash
 scripts/ls.sh
+scripts/ls.sh obsidian
+scripts/ls.sh all <parent-id>
 ```
 
 Create a context:
@@ -75,3 +92,5 @@ scripts/create-context.sh "Context title" /path/to/body.md
 - Offer to save durable new knowledge back to Nessie when useful.
 - If a script returns `agent_access_required`, tell the user Nessie agent
   access requires Pro or an active trial.
+- Do not treat context generation as the only use case. Normal use is
+  search -> read -> answer -> optionally write back.
