@@ -17,6 +17,8 @@ scripts/login.sh
 ```
 
 Ask the user to open the activation URL and enter the displayed code.
+The login script prints a prefilled `https://nessielabs.com/activate` URL and
+stores credentials under `~/.config/nessie/agent.json` after approval.
 
 ## Core Workflow
 
@@ -72,4 +74,5 @@ scripts/edit-context.sh <context-id> /tmp/old.txt /tmp/new.txt
   evidence.
 - Keep write operations additive unless the user explicitly asks to replace or
   remove content.
-
+- If a command returns `agent_access_required`, tell the user Nessie agent
+  access requires Pro or an active trial.

@@ -38,6 +38,9 @@ Login:
 scripts/login.sh
 ```
 
+The login script prints a prefilled `https://nessielabs.com/activate` URL and
+stores fallback-script credentials under `~/.config/nessie/agent.json`.
+
 Search:
 
 ```bash
@@ -70,4 +73,5 @@ scripts/create-context.sh "Context title" /path/to/body.md
 - Treat contexts as synthesized knowledge and transcripts/notes as primary
   evidence.
 - Offer to save durable new knowledge back to Nessie when useful.
-
+- If a script returns `agent_access_required`, tell the user Nessie agent
+  access requires Pro or an active trial.
