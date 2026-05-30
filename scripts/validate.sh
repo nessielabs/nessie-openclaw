@@ -14,8 +14,10 @@ HOME="$tmp_home" "$REPO_ROOT/adapters/openclaw/install.sh" >/dev/null
 HOME="$tmp_home" "$REPO_ROOT/adapters/hermes/install.sh" >/dev/null
 
 test -f "$tmp_home/.openclaw/skills/nessie/SKILL.md"
+test -f "$tmp_home/.openclaw/skills/nessie/docs/AGENT_WORKFLOWS.md"
 test -x "$tmp_home/.openclaw/skills/nessie/scripts/login.sh"
 test -f "$tmp_home/.hermes/skills/productivity/nessie/SKILL.md"
+test -f "$tmp_home/.hermes/skills/productivity/nessie/docs/AGENT_WORKFLOWS.md"
 test -x "$tmp_home/.hermes/skills/productivity/nessie/scripts/login.sh"
 test -x "$tmp_home/.config/nessie/skill/scripts/search.sh"
 

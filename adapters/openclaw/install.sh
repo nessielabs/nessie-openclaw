@@ -6,11 +6,12 @@ DEST="$HOME/.openclaw/skills/nessie"
 SHARED_DEST="$HOME/.config/nessie/skill/scripts"
 
 mkdir -p "$DEST/scripts" "$SHARED_DEST"
+mkdir -p "$DEST/docs"
 cp "$REPO_ROOT/adapters/openclaw/SKILL.md" "$DEST/SKILL.md"
+cp "$REPO_ROOT/shared/AGENT_WORKFLOWS.md" "$DEST/docs/AGENT_WORKFLOWS.md"
 cp "$REPO_ROOT/shared/"*.sh "$DEST/scripts/"
 cp "$REPO_ROOT/shared/"*.sh "$SHARED_DEST/"
 chmod +x "$DEST/scripts/"*.sh "$SHARED_DEST/"*.sh
 
 echo "Installed Nessie skill for OpenClaw at $DEST"
 echo "Run $DEST/scripts/login.sh to authenticate."
-
