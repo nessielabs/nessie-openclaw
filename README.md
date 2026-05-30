@@ -64,6 +64,7 @@ The device activation client name defaults to `nessie-skill`. Override
 
 ```text
 shared/
+  AGENT_WORKFLOWS.md   Shared research, synthesis, and write-back behavior.
   auth.sh              Shared token loading and refresh helpers.
   login.sh             Device activation login flow.
   ls.sh                List source worlds or child nodes.
