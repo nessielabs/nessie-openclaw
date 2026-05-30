@@ -43,6 +43,23 @@ The login script starts a device activation flow, asks the user to open
 The hosted API remains authoritative for access control. If a user does not
 have Nessie Pro access or an active trial, requests fail server-side.
 
+## Configuration
+
+The scripts default to the production hosted API:
+
+```text
+NESSIE_ENDPOINT=https://mcp.nessielabs.com
+```
+
+For development or staging, override it before running a command:
+
+```bash
+NESSIE_ENDPOINT=http://127.0.0.1:8787 scripts/login.sh
+```
+
+The device activation client name defaults to `nessie-skill`. Override
+`NESSIE_AGENT_CLIENT` if an adapter wants a more specific value in server logs.
+
 ## Repository Layout
 
 ```text
@@ -61,7 +78,18 @@ adapters/
   hermes/
     SKILL.md
     install.sh
+scripts/
+  validate.sh          Syntax-check scripts and dry-run both installers.
 ```
+
+## Validate
+
+```bash
+scripts/validate.sh
+```
+
+The validation script runs `bash -n` on every shell script and installs the
+OpenClaw and Hermes adapters into a temporary home directory.
 
 ## Development Status
 
@@ -74,4 +102,3 @@ This package expects the hosted Nessie agent API endpoints:
 - `POST /agent/tools/read`
 - `POST /agent/tools/context/create`
 - `POST /agent/tools/context/edit`
-

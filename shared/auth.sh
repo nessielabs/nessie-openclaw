@@ -132,14 +132,31 @@ access_token() {
 
 authorized_post() {
   require_command curl
+  require_command python3
   local path="$1"
   local body="${2:-{}}"
   local token
   token="$(access_token)"
-  curl -fsS \
+
+  local response status payload
+  response="$(curl -sS \
+    -w "\n%{http_code}" \
     -X POST "$NESSIE_ENDPOINT$path" \
     -H "Authorization: Bearer $token" \
     -H "Content-Type: application/json" \
-    --data "$body"
-}
+    --data "$body")"
 
+  status="$(printf "%s" "$response" | tail -n 1)"
+  payload="$(printf "%s" "$response" | sed '$d')"
+  printf "%s\n" "$payload"
+
+  python3 - "$status" <<'PY'
+import sys
+
+try:
+    status = int(sys.argv[1])
+except ValueError:
+    sys.exit(1)
+sys.exit(0 if 200 <= status < 300 else 1)
+PY
+}

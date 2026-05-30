@@ -11,20 +11,24 @@ require_command python3
 start_response="$(curl -fsS \
   -X POST "$NESSIE_ENDPOINT/agent/device/start" \
   -H "Content-Type: application/json" \
-  --data '{"client":"agent-skill"}')"
+  --data "{\"client\":\"${NESSIE_AGENT_CLIENT:-nessie-skill}\"}")"
 
-read -r device_code user_code verification_uri interval expires_in <<EOF
+read -r device_code user_code verification_uri activation_uri interval expires_in <<EOF
 $(python3 - "$start_response" <<'PY'
 import json
 import sys
+from urllib.parse import urlencode
 
 data = json.loads(sys.argv[1])
-print(data["device_code"], data["user_code"], data["verification_uri"], data.get("interval", 5), data.get("expires_in", 600))
+verification_uri = data["verification_uri"]
+activation_uri = verification_uri + "?" + urlencode({"user_code": data["user_code"]})
+print(data["device_code"], data["user_code"], verification_uri, activation_uri, data.get("interval", 5), data.get("expires_in", 600))
 PY
 )
 EOF
 
-echo "Open $verification_uri and enter code: $user_code"
+echo "Open $activation_uri"
+echo "If the code is not filled in automatically, enter: $user_code"
 echo "Waiting for approval..."
 
 deadline=$(( $(date +%s) + expires_in ))
@@ -68,7 +72,15 @@ EOF
       echo "Logged in to Nessie."
       exit 0
       ;;
-    authorization_pending|slow_down|pending)
+    slow_down)
+      if [ "$interval" -lt 30 ]; then
+        interval=$(( interval + 5 ))
+        if [ "$interval" -gt 30 ]; then
+          interval=30
+        fi
+      fi
+      ;;
+    authorization_pending|pending)
       ;;
     *)
       echo "Login failed: $token_response" >&2
@@ -79,4 +91,3 @@ done
 
 echo "Login timed out. Run this command again to start a new activation code." >&2
 exit 1
-
