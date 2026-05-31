@@ -45,7 +45,7 @@ have Nessie Pro access or an active trial, requests fail server-side.
 
 ## Configuration
 
-The scripts default to the production hosted API:
+The scripts default to the production-hosted API:
 
 ```text
 NESSIE_ENDPOINT=https://mcp.nessielabs.com
@@ -54,7 +54,7 @@ NESSIE_ENDPOINT=https://mcp.nessielabs.com
 For development or staging, override it before running a command:
 
 ```bash
-NESSIE_ENDPOINT=http://127.0.0.1:8787 scripts/login.sh
+NESSIE_ENDPOINT=http://127.0.0.1:8787 ~/.config/nessie/skill/scripts/login.sh
 ```
 
 The device activation client name defaults to `nessie-skill`. Override
