@@ -33,6 +33,28 @@ directly.
 4. Write back when useful. If the exchange produced durable knowledge, offer to
    save it as a context or update an existing context.
 
+## Startup Check-In
+
+Some Nessie host surfaces expose a dedicated check-in primitive. Use it when
+the user starts with "Nessie check-in", says "check in with Nessie", or asks to
+load their Nessie context before continuing.
+
+For MCP hosts, call `nessie_check_in`. It returns generated profile sections and
+recent Nessie activity. Treat that response as conversation context, not as the
+entire answer. If the user asks a specific follow-up, continue with the normal
+search -> read -> answer loop.
+
+For the script fallback in this package, there is not yet an exact REST
+equivalent of `nessie_check_in`. Do not invent one. Use source browsing and
+search instead:
+
+```bash
+scripts/ls.sh
+scripts/search.sh "current work recent decisions projects" all
+```
+
+Then read any relevant results before answering.
+
 ## When to Use Nessie
 
 Use Nessie when the user:
