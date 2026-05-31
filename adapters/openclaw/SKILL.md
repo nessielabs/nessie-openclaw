@@ -18,6 +18,8 @@ docs/AGENT_WORKFLOWS.md
 
 Read that workflow before substantial research, source browsing, or context
 creation. The scripts below are the OpenClaw command surface for that workflow.
+The hosted script API does not yet expose the exact MCP `nessie_check_in` tool;
+for check-in requests, follow the fallback in `docs/AGENT_WORKFLOWS.md`.
 
 ## Setup
 

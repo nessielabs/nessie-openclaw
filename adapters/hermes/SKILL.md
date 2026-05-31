@@ -39,6 +39,12 @@ mcp_servers:
 
 After changing MCP config, reload MCP in Hermes.
 
+When MCP is configured, use `nessie_check_in` when the user says "Nessie
+check-in", "check in with Nessie", or asks to load their Nessie context before
+continuing. That MCP tool returns generated profile sections and recent Nessie
+activity. The script fallback below does not expose an exact check-in
+equivalent yet.
+
 ## Script Fallback
 
 If MCP is not configured or not available, use the scripts bundled with this
