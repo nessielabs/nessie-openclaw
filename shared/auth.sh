@@ -139,12 +139,15 @@ authorized_post() {
   token="$(access_token)"
 
   local response status payload
-  response="$(curl -sS \
+  if ! response="$(curl -sS \
     -w "\n%{http_code}" \
     -X POST "$NESSIE_ENDPOINT$path" \
     -H "Authorization: Bearer $token" \
     -H "Content-Type: application/json" \
-    --data "$body")"
+    --data "$body")"; then
+    printf '{"error":"transport","error_description":"Network request to Nessie failed."}\n'
+    return 1
+  fi
 
   status="$(printf "%s" "$response" | tail -n 1)"
   payload="$(printf "%s" "$response" | sed '$d')"
