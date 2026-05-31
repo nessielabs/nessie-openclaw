@@ -8,20 +8,31 @@ source "$SCRIPT_DIR/auth.sh"
 require_command curl
 require_command python3
 
+start_body="$(python3 - "${NESSIE_AGENT_CLIENT:-nessie-skill}" <<'PY'
+import json
+import sys
+
+print(json.dumps({"client": sys.argv[1]}))
+PY
+)"
+
 start_response="$(curl -fsS \
   -X POST "$NESSIE_ENDPOINT/agent/device/start" \
   -H "Content-Type: application/json" \
-  --data "{\"client\":\"${NESSIE_AGENT_CLIENT:-nessie-skill}\"}")"
+  --data "$start_body")"
 
 read -r device_code user_code verification_uri activation_uri interval expires_in <<EOF
 $(python3 - "$start_response" <<'PY'
 import json
 import sys
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlparse, urlunparse
 
 data = json.loads(sys.argv[1])
 verification_uri = data["verification_uri"]
-activation_uri = verification_uri + "?" + urlencode({"user_code": data["user_code"]})
+parts = urlparse(verification_uri)
+extra = urlencode({"user_code": data["user_code"]})
+query = extra if not parts.query else parts.query + "&" + extra
+activation_uri = urlunparse(parts._replace(query=query))
 print(data["device_code"], data["user_code"], verification_uri, activation_uri, data.get("interval", 5), data.get("expires_in", 600))
 PY
 )
@@ -34,10 +45,13 @@ echo "Waiting for approval..."
 deadline=$(( $(date +%s) + expires_in ))
 while [ "$(date +%s)" -lt "$deadline" ]; do
   sleep "$interval"
-  token_response="$(curl -sS \
+  if ! token_response="$(curl -sS \
     -X POST "$NESSIE_ENDPOINT/agent/device/token" \
     -H "Content-Type: application/json" \
-    --data "{\"device_code\":\"$device_code\"}")"
+    --data "{\"device_code\":\"$device_code\"}")"; then
+    echo "Temporary network error while waiting for approval; retrying..." >&2
+    continue
+  fi
 
   status="$(python3 - "$token_response" <<'PY'
 import json
@@ -80,7 +94,7 @@ EOF
         fi
       fi
       ;;
-    authorization_pending|pending)
+    authorization_pending|pending|invalid)
       ;;
     *)
       echo "Login failed: $token_response" >&2
