@@ -4,6 +4,7 @@ set -euo pipefail
 NESSIE_ENDPOINT="${NESSIE_ENDPOINT:-https://mcp.nessielabs.com}"
 NESSIE_CONFIG_DIR="${NESSIE_CONFIG_DIR:-$HOME/.config/nessie}"
 NESSIE_TOKEN_FILE="${NESSIE_TOKEN_FILE:-$NESSIE_CONFIG_DIR/agent.json}"
+NESSIE_LOGIN_COMMAND="${NESSIE_LOGIN_COMMAND:-$NESSIE_CONFIG_DIR/skill/scripts/login.sh}"
 
 require_command() {
   if ! command -v "$1" >/dev/null 2>&1; then
@@ -32,12 +33,46 @@ print(value)
 PY
 }
 
+ensure_config_dir() {
+  mkdir -p "$NESSIE_CONFIG_DIR"
+  chmod 700 "$NESSIE_CONFIG_DIR"
+}
+
+login_required() {
+  echo "Not logged in to Nessie. Run: $NESSIE_LOGIN_COMMAND" >&2
+  exit 1
+}
+
+endpoint_matches() {
+  python3 - "$NESSIE_TOKEN_FILE" "$NESSIE_ENDPOINT" "$NESSIE_LOGIN_COMMAND" <<'PY'
+import json
+import sys
+
+path, endpoint, login_command = sys.argv[1:4]
+try:
+    with open(path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+except FileNotFoundError:
+    sys.exit(2)
+
+stored = data.get("endpoint")
+if not stored or stored == endpoint:
+    sys.exit(0)
+
+print(
+    f"Nessie token was issued for {stored}, but NESSIE_ENDPOINT is {endpoint}. "
+    f"Run {login_command} again for this endpoint.",
+    file=sys.stderr,
+)
+sys.exit(1)
+PY
+}
+
 json_set_tokens() {
   local access_token="$1"
   local refresh_token="$2"
   local expires_in="$3"
-  mkdir -p "$NESSIE_CONFIG_DIR"
-  chmod 700 "$NESSIE_CONFIG_DIR"
+  ensure_config_dir
   python3 - "$NESSIE_TOKEN_FILE" "$NESSIE_ENDPOINT" "$access_token" "$refresh_token" "$expires_in" <<'PY'
 import json
 import os
@@ -81,20 +116,25 @@ refresh_access_token() {
   require_command python3
 
   if [ ! -f "$NESSIE_TOKEN_FILE" ]; then
-    echo "Not logged in to Nessie. Run: $NESSIE_CONFIG_DIR/skill/scripts/login.sh" >&2
-    exit 1
+    login_required
   fi
+  endpoint_matches
 
   local refresh_token
   refresh_token="$(json_get refresh_token)"
 
   local response
-  response="$(curl -fsS \
+  if ! response="$(curl -fsS \
     -X POST "$NESSIE_ENDPOINT/oauth/token" \
     -H "Content-Type: application/x-www-form-urlencoded" \
     --data-urlencode "grant_type=refresh_token" \
-    --data-urlencode "refresh_token=$refresh_token")"
+    --data-urlencode "refresh_token=$refresh_token")"; then
+    rm -f "$NESSIE_TOKEN_FILE"
+    echo "Nessie login expired. Run: $NESSIE_LOGIN_COMMAND" >&2
+    exit 1
+  fi
 
+  ensure_config_dir
   python3 - "$response" "$NESSIE_TOKEN_FILE" "$NESSIE_ENDPOINT" <<'PY'
 import json
 import os
@@ -124,6 +164,10 @@ PY
 
 access_token() {
   require_command python3
+  if [ ! -f "$NESSIE_TOKEN_FILE" ]; then
+    login_required
+  fi
+  endpoint_matches
   if token_expired; then
     refresh_access_token
   fi
@@ -134,7 +178,8 @@ authorized_post() {
   require_command curl
   require_command python3
   local path="$1"
-  local body="${2:-{}}"
+  local default_body='{}'
+  local body="${2:-$default_body}"
   local token
   token="$(access_token)"
 
