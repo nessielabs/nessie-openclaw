@@ -48,6 +48,7 @@ Search:
 
 ```bash
 scripts/search.sh "query"
+scripts/search.sh "query" all
 scripts/search.sh "query" context
 scripts/search.sh "query" transcript
 scripts/search.sh "query" obsidian
