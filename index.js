@@ -59,6 +59,10 @@ async function handleNessieInit(opts) {
     if (validation) {
       throw new Error(validation);
     }
+    const tools = await listHostedMcpTools({
+      endpoint: resolveMcpEndpoint(opts.mcpEndpoint),
+      apiKey,
+    });
     const configPath = await writeOpenClawConfig({
       apiKey,
       configPath: opts.config,
@@ -67,7 +71,8 @@ async function handleNessieInit(opts) {
     printResult(opts, {
       connected: true,
       status: "connected",
-      message: "Connected to Nessie.",
+      message: `Connected to Nessie (${tools.length} MCP tools available).`,
+      toolCount: tools.length,
       configPath,
     });
     return;
@@ -129,7 +134,18 @@ async function handleNessieStatus(opts) {
   const configPath = await resolveOpenClawConfigPath(opts.config);
   const config = await readJsonFile(configPath);
   const server = config?.mcp?.servers?.[MCP_SERVER_NAME];
-  const apiKey = resolveApiKeyFromMcpServer(server) || process.env.NESSIE_API_KEY || "";
+  let apiKey = "";
+  try {
+    apiKey = resolveApiKeyFromMcpServer(server) || process.env.NESSIE_API_KEY || "";
+  } catch (err) {
+    printResult(opts, {
+      connected: false,
+      status: "missing_env_var",
+      message: err instanceof Error ? err.message : String(err),
+      configPath,
+    });
+    return;
+  }
   const endpoint = resolveMcpEndpoint(opts.mcpEndpoint || server?.url);
 
   if (!apiKey) {
@@ -287,11 +303,7 @@ function resolveApiKeyFromMcpServer(server) {
   if (typeof authHeader !== "string") return "";
   const match = /^Bearer\s+(.+)$/i.exec(authHeader.trim());
   if (!match) return "";
-  try {
-    return resolveEnvRefs(match[1].trim());
-  } catch {
-    return "";
-  }
+  return resolveEnvRefs(match[1].trim());
 }
 
 function resolveEnvRefs(value) {
