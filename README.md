@@ -46,7 +46,7 @@ configuration and skill instructions are loaded.
 Create an agent API key in Nessie, then make it available to OpenClaw:
 
 ```bash
-export NESSIE_API_KEY="nsk_agent_..."
+export NESSIE_API_KEY="sk_nes_v1_..."
 ```
 
 OpenClaw reads `.mcp.json` and sends:
