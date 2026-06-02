@@ -21,6 +21,7 @@
     "validate": "bash scripts/validate.sh"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "@sinclair/typebox": "0.34.47"
   },
   "openclaw": {
