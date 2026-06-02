@@ -6,8 +6,8 @@ on:
     branches: [main]
 
 jobs:
-  shell:
-    name: Shell scripts and installers
+  package:
+    name: Plugin package
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
