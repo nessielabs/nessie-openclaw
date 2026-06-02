@@ -4,14 +4,6 @@ description: Search and read the user's Nessie context library from OpenClaw thr
 version: 0.1.0
 metadata:
   openclaw:
-    requires:
-      env:
-        - NESSIE_API_KEY
-    primaryEnv: NESSIE_API_KEY
-    envVars:
-      - name: NESSIE_API_KEY
-        required: true
-        description: Nessie API key created in the Nessie app settings.
     homepage: https://github.com/nessielabs/nessie-openclaw
 ---
 
@@ -21,9 +13,9 @@ Use Nessie when the user asks about their prior work, decisions, projects,
 saved context, notes, AI conversations, relationships, or anything they may
 have discussed or researched before.
 
-Nessie is available through native OpenClaw tools registered by the
-`nessie-openclaw` plugin. Those tools call Nessie's hosted MCP server with the
-user's Nessie API key. Prefer these tools over shell commands; this plugin
+Nessie is available through the hosted Nessie MCP server configured by the
+`nessie-openclaw` setup command. OpenClaw discovers the available Nessie tools
+from the MCP server. Prefer those MCP tools over shell commands; this plugin
 intentionally does not require a local Nessie app or copied scripts.
 
 ## First Step
@@ -47,7 +39,7 @@ specific follow-up, continue with the normal search, read, and answer loop.
 
 ## Available Operations
 
-Use the Nessie tools exposed by the native plugin:
+Use the Nessie tools exposed by OpenClaw's MCP integration:
 
 - check-in: load profile sections and recent Nessie activity.
 - team list: list readable teams and team-shared resources.
