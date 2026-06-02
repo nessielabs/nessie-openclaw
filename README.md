@@ -21,6 +21,8 @@ package.json
   ClawHub/package metadata.
 scripts/validate.sh
   Static package validation.
+docs/openclaw-setup.md
+  Agent-facing setup prompt for nessielabs.com/openclaw-setup.
 ```
 
 ## Install
@@ -42,19 +44,48 @@ openclaw plugins enable nessie-openclaw
 Restart the OpenClaw gateway/session after installation so the native runtime
 and bundled skill instructions are loaded.
 
-## Authentication
+## OpenClaw Chat Setup
 
-Create an agent API key in Nessie, then make it available to OpenClaw:
+The recommended setup path mirrors Mem0's OpenClaw setup style: paste an agent
+prompt into OpenClaw, let the agent install the plugin, then verify the user's
+Nessie account by email OTP.
+
+The setup prompt is in [`docs/openclaw-setup.md`](docs/openclaw-setup.md). It
+will also be published at `https://nessielabs.com/openclaw-setup`.
+
+The prompt drives these commands:
+
+```bash
+openclaw nessie init --email user@example.com
+openclaw nessie init --email user@example.com --code 123456
+openclaw nessie status
+```
+
+`init --email` asks Nessie to send a one-time verification code. `init --email
+--code` exchanges the verified code for a Nessie agent API key and writes it to
+the OpenClaw config file with owner-only file permissions.
+
+The OTP exchange expects the hosted Nessie setup API to expose:
+
+- `POST /agent/openclaw/otp/start`
+- `POST /agent/openclaw/otp/verify`
+
+## Manual Authentication
+
+If OTP setup is not available yet, create an agent API key in Nessie and run:
+
+```bash
+openclaw nessie init --api-key "sk_nes_v1_..."
+```
+
+This writes the same OpenClaw plugin config used by the OTP setup flow.
+
+OpenClaw native provider auth, environment variables, and plugin config are
+also supported for development and CI:
 
 ```bash
 openclaw models auth login --provider nessie
 ```
-
-OpenClaw will prompt for the key and store it as the native `nessie:default`
-auth profile.
-
-Environment variables and plugin config are also supported for development and
-CI:
 
 ```bash
 export NESSIE_API_KEY="sk_nes_v1_..."
