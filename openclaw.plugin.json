@@ -1,7 +1,7 @@
 {
   "id": "nessie-openclaw",
   "name": "Nessie",
-  "description": "Native OpenClaw plugin for searching and reading Nessie context.",
+  "description": "Native OpenClaw plugin for searching, reading, and writing Nessie context through hosted MCP.",
   "version": "0.1.0",
   "skills": [
     "skills/nessie"
@@ -10,6 +10,9 @@
     "providers": [
       {
         "id": "nessie",
+        "authMethods": [
+          "api-key"
+        ],
         "envVars": [
           "NESSIE_API_KEY"
         ]
@@ -24,24 +27,66 @@
       "help": "Create this in Nessie Settings > API keys. Use ${NESSIE_API_KEY} to avoid storing the value inline."
     },
     "endpoint": {
-      "label": "Nessie endpoint",
-      "placeholder": "https://mcp.nessielabs.com",
+      "label": "Nessie MCP endpoint",
+      "placeholder": "https://mcp.nessielabs.com/mcp",
       "advanced": true,
       "help": "Override only for staging or local development."
     }
   },
   "contracts": {
     "tools": [
-      "nessie_check_in",
+      "nessie_team_list",
+      "nessie_integration_list",
+      "nessie_list",
       "nessie_ls",
       "nessie_search",
       "nessie_read",
+      "nessie_resume",
+      "nessie_who_am_i",
+      "nessie_check_in",
+      "nessie_folders",
       "nessie_create_context",
-      "nessie_edit_context"
+      "nessie_edit_context",
+      "nessie_rename_context",
+      "nessie_move_context",
+      "nessie_delete_context",
+      "nessie_create_folder",
+      "nessie_rename_folder",
+      "nessie_delete_folder"
     ]
   },
   "toolMetadata": {
-    "nessie_check_in": {
+    "nessie_team_list": {
+      "authSignals": [
+        {
+          "provider": "nessie"
+        }
+      ],
+      "configSignals": [
+        {
+          "rootPath": "plugins.entries.nessie-openclaw.config",
+          "required": [
+            "apiKey"
+          ]
+        }
+      ]
+    },
+    "nessie_integration_list": {
+      "authSignals": [
+        {
+          "provider": "nessie"
+        }
+      ],
+      "configSignals": [
+        {
+          "rootPath": "plugins.entries.nessie-openclaw.config",
+          "required": [
+            "apiKey"
+          ]
+        }
+      ]
+    },
+    "nessie_list": {
       "authSignals": [
         {
           "provider": "nessie"
@@ -101,6 +146,66 @@
         }
       ]
     },
+    "nessie_resume": {
+      "authSignals": [
+        {
+          "provider": "nessie"
+        }
+      ],
+      "configSignals": [
+        {
+          "rootPath": "plugins.entries.nessie-openclaw.config",
+          "required": [
+            "apiKey"
+          ]
+        }
+      ]
+    },
+    "nessie_who_am_i": {
+      "authSignals": [
+        {
+          "provider": "nessie"
+        }
+      ],
+      "configSignals": [
+        {
+          "rootPath": "plugins.entries.nessie-openclaw.config",
+          "required": [
+            "apiKey"
+          ]
+        }
+      ]
+    },
+    "nessie_check_in": {
+      "authSignals": [
+        {
+          "provider": "nessie"
+        }
+      ],
+      "configSignals": [
+        {
+          "rootPath": "plugins.entries.nessie-openclaw.config",
+          "required": [
+            "apiKey"
+          ]
+        }
+      ]
+    },
+    "nessie_folders": {
+      "authSignals": [
+        {
+          "provider": "nessie"
+        }
+      ],
+      "configSignals": [
+        {
+          "rootPath": "plugins.entries.nessie-openclaw.config",
+          "required": [
+            "apiKey"
+          ]
+        }
+      ]
+    },
     "nessie_create_context": {
       "authSignals": [
         {
@@ -117,6 +222,96 @@
       ]
     },
     "nessie_edit_context": {
+      "authSignals": [
+        {
+          "provider": "nessie"
+        }
+      ],
+      "configSignals": [
+        {
+          "rootPath": "plugins.entries.nessie-openclaw.config",
+          "required": [
+            "apiKey"
+          ]
+        }
+      ]
+    },
+    "nessie_rename_context": {
+      "authSignals": [
+        {
+          "provider": "nessie"
+        }
+      ],
+      "configSignals": [
+        {
+          "rootPath": "plugins.entries.nessie-openclaw.config",
+          "required": [
+            "apiKey"
+          ]
+        }
+      ]
+    },
+    "nessie_move_context": {
+      "authSignals": [
+        {
+          "provider": "nessie"
+        }
+      ],
+      "configSignals": [
+        {
+          "rootPath": "plugins.entries.nessie-openclaw.config",
+          "required": [
+            "apiKey"
+          ]
+        }
+      ]
+    },
+    "nessie_delete_context": {
+      "authSignals": [
+        {
+          "provider": "nessie"
+        }
+      ],
+      "configSignals": [
+        {
+          "rootPath": "plugins.entries.nessie-openclaw.config",
+          "required": [
+            "apiKey"
+          ]
+        }
+      ]
+    },
+    "nessie_create_folder": {
+      "authSignals": [
+        {
+          "provider": "nessie"
+        }
+      ],
+      "configSignals": [
+        {
+          "rootPath": "plugins.entries.nessie-openclaw.config",
+          "required": [
+            "apiKey"
+          ]
+        }
+      ]
+    },
+    "nessie_rename_folder": {
+      "authSignals": [
+        {
+          "provider": "nessie"
+        }
+      ],
+      "configSignals": [
+        {
+          "rootPath": "plugins.entries.nessie-openclaw.config",
+          "required": [
+            "apiKey"
+          ]
+        }
+      ]
+    },
+    "nessie_delete_folder": {
       "authSignals": [
         {
           "provider": "nessie"

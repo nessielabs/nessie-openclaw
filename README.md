@@ -3,10 +3,10 @@
 Nessie OpenClaw is the public native OpenClaw plugin for connecting an
 OpenClaw agent to a user's Nessie context library.
 
-The plugin uses hosted Nessie agent endpoints backed by the same MCP tool
-implementations. Users authenticate by creating an API key in Nessie and
-exposing it to OpenClaw as `NESSIE_API_KEY` or as plugin config; no local
-Nessie app or device-code login flow is required at runtime.
+The plugin registers native OpenClaw tools that proxy to Nessie's hosted MCP
+server over Streamable HTTP. Users authenticate by creating an API key in
+Nessie and exposing it to OpenClaw as `NESSIE_API_KEY` or as plugin config; no
+local Nessie app or device-code login flow is required at runtime.
 
 ## What This Package Contains
 
@@ -14,7 +14,7 @@ Nessie app or device-code login flow is required at runtime.
 openclaw.plugin.json
   Native plugin manifest, config schema, setup hints, and tool ownership.
 index.js
-  Native OpenClaw runtime that registers Nessie tools and calls hosted Nessie.
+  Native OpenClaw runtime that registers Nessie tools and calls hosted MCP.
 skills/nessie/
   Agent instructions for when and how to use Nessie context.
 package.json
@@ -73,10 +73,10 @@ The native plugin sends:
 Authorization: Bearer ${NESSIE_API_KEY}
 ```
 
-to the hosted Nessie endpoint `https://mcp.nessielabs.com`.
+to the hosted Nessie MCP endpoint `https://mcp.nessielabs.com/mcp`.
 
 The Nessie backend remains authoritative for access control. The API key maps
-to a Nessie user server-side and each request is still checked against the
+to a Nessie user server-side and each MCP request is still checked against the
 user's Pro/trial entitlement.
 
 ## Agent Behavior
@@ -90,14 +90,29 @@ The bundled skill teaches OpenClaw to:
 - create or update Nessie contexts only when the user asks to save durable
   knowledge.
 
-The native plugin registers these tools:
+The native plugin registers the current Nessie MCP tool surface:
 
+- `nessie_team_list`
+- `nessie_integration_list`
+- `nessie_list`
 - `nessie_check_in`
 - `nessie_ls`
 - `nessie_search`
 - `nessie_read`
+- `nessie_resume`
+- `nessie_who_am_i`
+- `nessie_folders`
 - `nessie_create_context`
 - `nessie_edit_context`
+- `nessie_rename_context`
+- `nessie_move_context`
+- `nessie_delete_context`
+- `nessie_create_folder`
+- `nessie_rename_folder`
+- `nessie_delete_folder`
+
+Each native OpenClaw tool calls the matching Nessie MCP tool on the hosted MCP
+server. The package does not duplicate or reimplement Nessie's tool semantics.
 
 ## Publishing
 
