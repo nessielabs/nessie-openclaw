@@ -1,7 +1,8 @@
 {
   "name": "@nessielabs/nessie-openclaw",
   "version": "0.1.0",
-  "description": "OpenClaw plugin bundle for Nessie context over hosted MCP.",
+  "type": "module",
+  "description": "Native OpenClaw plugin for Nessie context.",
   "license": "MIT-0",
   "homepage": "https://nessielabs.com",
   "repository": {
@@ -9,8 +10,8 @@
     "url": "https://github.com/nessielabs/nessie-openclaw.git"
   },
   "files": [
-    ".mcp.json",
-    ".codex-plugin",
+    "index.js",
+    "openclaw.plugin.json",
     "skills",
     "scripts",
     "README.md",
@@ -18,5 +19,21 @@
   ],
   "scripts": {
     "validate": "bash scripts/validate.sh"
+  },
+  "dependencies": {
+    "@sinclair/typebox": "0.34.47"
+  },
+  "openclaw": {
+    "extensions": [
+      "./index.js"
+    ],
+    "compat": {
+      "pluginApi": ">=2026.4.25",
+      "minGatewayVersion": "2026.4.25"
+    },
+    "build": {
+      "openclawVersion": "2026.4.25",
+      "pluginSdkVersion": "2026.4.25"
+    }
   }
 }

@@ -16,8 +16,8 @@ required = [
     "README.md",
     "LICENSE",
     "package.json",
-    ".codex-plugin/plugin.json",
-    ".mcp.json",
+    "openclaw.plugin.json",
+    "index.js",
     "skills/nessie/SKILL.md",
 ]
 missing = [path for path in required if not (root / path).is_file()]
@@ -29,24 +29,28 @@ if package.get("name") != "@nessielabs/nessie-openclaw":
     raise SystemExit("package.json name must be @nessielabs/nessie-openclaw")
 if package.get("license") != "MIT-0":
     raise SystemExit("package.json license must be MIT-0")
+openclaw = package.get("openclaw", {})
+if openclaw.get("extensions") != ["./index.js"]:
+    raise SystemExit("package.json must declare openclaw.extensions ./index.js")
+if not openclaw.get("compat", {}).get("pluginApi"):
+    raise SystemExit("package.json must declare openclaw.compat.pluginApi")
 
-manifest = json.loads((root / ".codex-plugin/plugin.json").read_text(encoding="utf-8"))
-if manifest.get("name") != "nessie-openclaw":
-    raise SystemExit(".codex-plugin/plugin.json name must be nessie-openclaw")
-if manifest.get("skills") != "./skills/":
-    raise SystemExit(".codex-plugin/plugin.json must expose ./skills/")
+manifest = json.loads((root / "openclaw.plugin.json").read_text(encoding="utf-8"))
+if manifest.get("id") != "nessie-openclaw":
+    raise SystemExit("openclaw.plugin.json id must be nessie-openclaw")
+if manifest.get("skills") != ["skills/nessie"]:
+    raise SystemExit("openclaw.plugin.json must load skills/nessie")
+if "NESSIE_API_KEY" not in json.dumps(manifest):
+    raise SystemExit("openclaw.plugin.json must declare NESSIE_API_KEY setup metadata")
+tools = manifest.get("contracts", {}).get("tools", [])
+for tool in ["nessie_check_in", "nessie_ls", "nessie_search", "nessie_read", "nessie_create_context", "nessie_edit_context"]:
+    if tool not in tools:
+        raise SystemExit(f"openclaw.plugin.json contracts.tools must include {tool}")
 
-mcp = json.loads((root / ".mcp.json").read_text(encoding="utf-8"))
-server = mcp.get("mcp", {}).get("servers", {}).get("nessie")
-if not server:
-    raise SystemExit(".mcp.json must declare mcp.servers.nessie")
-if server.get("transport") != "streamable-http":
-    raise SystemExit("Nessie MCP transport must be streamable-http")
-if server.get("url") != "https://mcp.nessielabs.com/mcp":
-    raise SystemExit("Nessie MCP URL must point at production hosted MCP")
-auth = server.get("headers", {}).get("Authorization", "")
-if "NESSIE_API_KEY" not in auth:
-    raise SystemExit("Nessie MCP Authorization header must reference NESSIE_API_KEY")
+runtime = (root / "index.js").read_text(encoding="utf-8")
+for needle in ["registerTool", "/agent/tools/search", "NESSIE_API_KEY"]:
+    if needle not in runtime:
+        raise SystemExit(f"index.js must mention {needle}")
 
 skill = (root / "skills/nessie/SKILL.md").read_text(encoding="utf-8")
 for needle in ["check-in", "search", "read", "NESSIE_API_KEY"]:
@@ -57,7 +61,7 @@ for needle in ["requires:", "primaryEnv: NESSIE_API_KEY", "envVars:"]:
         raise SystemExit(f"skills/nessie/SKILL.md must declare {needle}")
 
 readme = (root / "README.md").read_text(encoding="utf-8")
-for needle in ["openclaw plugins install", "NESSIE_API_KEY", "https://mcp.nessielabs.com/mcp"]:
+for needle in ["openclaw plugins install", "NESSIE_API_KEY", "https://mcp.nessielabs.com"]:
     if needle not in readme:
         raise SystemExit(f"README.md must mention {needle}")
 PY
