@@ -19,6 +19,7 @@ required = [
     "openclaw.plugin.json",
     "index.js",
     "skills/nessie/SKILL.md",
+    "docs/openclaw-setup.md",
 ]
 missing = [path for path in required if not (root / path).is_file()]
 if missing:
@@ -78,6 +79,10 @@ for tool in expected_tools:
 runtime = (root / "index.js").read_text(encoding="utf-8")
 for needle in [
     "registerTool",
+    "registerCli",
+    "openclaw nessie init",
+    "/agent/openclaw/otp/start",
+    "/agent/openclaw/otp/verify",
     "StreamableHTTPClientTransport",
     "client.callTool",
     "registerProvider",
@@ -100,12 +105,17 @@ for needle in ["requires:", "primaryEnv: NESSIE_API_KEY", "envVars:"]:
         raise SystemExit(f"skills/nessie/SKILL.md must declare {needle}")
 
 readme = (root / "README.md").read_text(encoding="utf-8")
-for needle in ["openclaw plugins install", "openclaw models auth login --provider nessie", "NESSIE_API_KEY", "https://mcp.nessielabs.com/mcp"]:
+for needle in ["openclaw plugins install", "docs/openclaw-setup.md", "openclaw nessie init", "openclaw nessie status", "openclaw models auth login --provider nessie", "NESSIE_API_KEY", "https://mcp.nessielabs.com/mcp"]:
     if needle not in readme:
         raise SystemExit(f"README.md must mention {needle}")
 for tool in expected_tools:
     if tool not in readme:
         raise SystemExit(f"README.md must mention {tool}")
+
+setup_prompt = (root / "docs/openclaw-setup.md").read_text(encoding="utf-8")
+for needle in ["Prompt for Agent", "openclaw nessie init --email", "openclaw nessie status"]:
+    if needle not in setup_prompt:
+        raise SystemExit(f"docs/openclaw-setup.md must mention {needle}")
 PY
 
 echo "Nessie OpenClaw package validation passed."

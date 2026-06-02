@@ -5,6 +5,7 @@ import { Type } from "@sinclair/typebox";
 const PLUGIN_ID = "nessie-openclaw";
 const PROVIDER_ID = "nessie";
 const DEFAULT_MCP_ENDPOINT = "https://mcp.nessielabs.com/mcp";
+const DEFAULT_SETUP_BASE_URL = "https://mcp.nessielabs.com";
 
 const sourceTypeSchema = Type.Optional(Type.Union([
   Type.Literal("context"),
@@ -270,7 +271,7 @@ async function resolveNessieApiKey(api, config) {
 async function callNessieTool(api, config, toolName, args = {}) {
   const apiKey = await resolveNessieApiKey(api, config);
   if (!apiKey) {
-    throw new Error("Nessie API key is not configured. Run `openclaw models auth login --provider nessie`, set NESSIE_API_KEY, or configure plugins.entries.nessie-openclaw.config.apiKey.");
+    throw new Error("Nessie API key is not configured. Run `openclaw nessie init --email <email>` or `openclaw nessie init --api-key sk_nes_v1_...`, set NESSIE_API_KEY, or configure plugins.entries.nessie-openclaw.config.apiKey.");
   }
 
   const client = new Client(
@@ -456,6 +457,308 @@ function registerNessieProviderAuth(api) {
   });
 }
 
+function registerNessieCli(api) {
+  if (typeof api.registerCli !== "function") return;
+
+  api.registerCli(async ({ program }) => {
+    const command = program
+      .command("nessie")
+      .description("Manage the Nessie OpenClaw integration");
+
+    command
+      .command("init")
+      .description("Connect OpenClaw to Nessie with email OTP or a Nessie API key")
+      .option("--email <email>", "Nessie account email for OTP setup")
+      .option("--code <code>", "6-digit OTP code sent by Nessie")
+      .option("--api-key <key>", "Nessie API key created in the Nessie app")
+      .option("--endpoint <url>", "Nessie setup API base URL", DEFAULT_SETUP_BASE_URL)
+      .option("--mcp-endpoint <url>", "Nessie MCP endpoint", DEFAULT_MCP_ENDPOINT)
+      .option("--config <path>", "OpenClaw config path")
+      .option("--json", "Print machine-readable JSON")
+      .action(async (opts) => {
+        await handleNessieInit(opts);
+      });
+
+    command
+      .command("status")
+      .description("Check whether the Nessie OpenClaw integration is connected")
+      .option("--endpoint <url>", "Nessie setup API base URL", DEFAULT_SETUP_BASE_URL)
+      .option("--config <path>", "OpenClaw config path")
+      .option("--json", "Print machine-readable JSON")
+      .action(async (opts) => {
+        await handleNessieStatus(opts);
+      });
+
+    command
+      .command("setup-prompt")
+      .description("Print the agent-facing Nessie setup prompt")
+      .action(() => {
+        console.log(buildSetupPrompt());
+      });
+  }, {
+    commands: ["nessie"],
+    descriptors: [{
+      name: "nessie",
+      description: "Manage the Nessie OpenClaw integration",
+      hasSubcommands: true,
+    }],
+  });
+}
+
+async function handleNessieInit(opts) {
+  const apiKey = normalizeApiKey(opts.apiKey);
+  if (apiKey) {
+    const validation = validateNessieApiKey(apiKey);
+    if (validation) {
+      throw new Error(validation);
+    }
+    const configPath = await writeOpenClawConfig({
+      apiKey,
+      configPath: opts.config,
+      mcpEndpoint: opts.mcpEndpoint,
+    });
+    printInitResult(opts, {
+      status: "connected",
+      message: "Connected to Nessie.",
+      configPath,
+    });
+    return;
+  }
+
+  const email = normalizeEmail(opts.email);
+  const code = normalizeOtpCode(opts.code);
+  if (!email) {
+    throw new Error("Run `openclaw nessie init --email you@example.com`, or pass `--api-key sk_nes_v1_...`.");
+  }
+
+  const baseUrl = resolveSetupBaseUrl(opts.endpoint);
+  if (!code) {
+    await postSetupJson(`${baseUrl}/agent/openclaw/otp/start`, {
+      email,
+      client: "openclaw",
+    });
+    printInitResult(opts, {
+      status: "otp_sent",
+      message: "Check your email for a 6-digit code, then run `openclaw nessie init --email <email> --code <code>`.",
+      email,
+    });
+    return;
+  }
+
+  const response = await postSetupJson(`${baseUrl}/agent/openclaw/otp/verify`, {
+    email,
+    code,
+    client: "openclaw",
+  });
+  const issuedApiKey = normalizeApiKey(response.api_key ?? response.apiKey ?? response.key);
+  const validation = validateNessieApiKey(issuedApiKey);
+  if (validation) {
+    throw new Error("Nessie OTP verification did not return a valid API key.");
+  }
+
+  const configPath = await writeOpenClawConfig({
+    apiKey: issuedApiKey,
+    configPath: opts.config,
+    mcpEndpoint: opts.mcpEndpoint,
+  });
+  printInitResult(opts, {
+    status: "connected",
+    message: "Connected to Nessie.",
+    configPath,
+  });
+}
+
+async function handleNessieStatus(opts) {
+  const configPath = await resolveOpenClawConfigPath(opts.config);
+  const config = await readJsonFile(configPath);
+  const configuredKey = normalizeApiKey(config?.plugins?.entries?.[PLUGIN_ID]?.config?.apiKey);
+  const apiKey = configuredKey ? resolveEnvRefs(configuredKey) : process.env.NESSIE_API_KEY;
+  if (!apiKey) {
+    printStatusResult(opts, {
+      connected: false,
+      status: "missing_api_key",
+      message: "Nessie is not connected. Run `openclaw nessie init --email you@example.com` or `openclaw nessie init --api-key sk_nes_v1_...`.",
+      configPath,
+    });
+    return;
+  }
+
+  const validation = validateNessieApiKey(apiKey);
+  if (validation) {
+    printStatusResult(opts, {
+      connected: false,
+      status: "invalid_api_key",
+      message: validation,
+      configPath,
+    });
+    return;
+  }
+
+  try {
+    await validateNessieConnection(apiKey, opts.endpoint);
+    printStatusResult(opts, {
+      connected: true,
+      status: "connected",
+      message: "Connected to Nessie.",
+      configPath,
+    });
+  } catch (err) {
+    printStatusResult(opts, {
+      connected: false,
+      status: "connection_failed",
+      message: err instanceof Error ? err.message : String(err),
+      configPath,
+    });
+  }
+}
+
+function printInitResult(opts, result) {
+  if (opts.json) {
+    console.log(JSON.stringify(result, null, 2));
+    return;
+  }
+  console.log(result.message);
+  if (result.configPath) {
+    console.log(`OpenClaw config updated: ${result.configPath}`);
+  }
+}
+
+function printStatusResult(opts, result) {
+  if (opts.json) {
+    console.log(JSON.stringify(result, null, 2));
+    return;
+  }
+  console.log(result.message);
+  if (result.configPath) {
+    console.log(`OpenClaw config: ${result.configPath}`);
+  }
+}
+
+function normalizeEmail(value) {
+  return typeof value === "string" ? value.trim().toLowerCase() : "";
+}
+
+function normalizeOtpCode(value) {
+  return typeof value === "string" ? value.trim().replace(/\s+/g, "") : "";
+}
+
+function resolveSetupBaseUrl(value) {
+  const raw = (value || process.env.NESSIE_SETUP_ENDPOINT || DEFAULT_SETUP_BASE_URL).replace(/\/+$/, "");
+  return raw.endsWith("/mcp") ? raw.slice(0, -4) : raw;
+}
+
+async function postSetupJson(url, body, apiKey) {
+  const headers = { "Content-Type": "application/json" };
+  if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
+  const response = await fetch(url, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(body),
+  });
+  const text = await response.text();
+  const data = parseJson(text);
+  if (!response.ok) {
+    const message = data?.error_description || data?.message || data?.error || text || `HTTP ${response.status}`;
+    throw new Error(message);
+  }
+  return data ?? {};
+}
+
+async function validateNessieConnection(apiKey, endpoint) {
+  const baseUrl = resolveSetupBaseUrl(endpoint);
+  await postSetupJson(`${baseUrl}/agent/tools/ls`, { limit: 1 }, apiKey);
+}
+
+function parseJson(text) {
+  if (!text) return null;
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+}
+
+async function writeOpenClawConfig({ apiKey, configPath, mcpEndpoint }) {
+  const resolvedPath = await resolveOpenClawConfigPath(configPath);
+  const { dirname } = await import("node:path");
+  const fs = await import("node:fs/promises");
+  const dir = dirname(resolvedPath);
+  const existing = await readJsonFile(resolvedPath);
+  const next = {
+    ...(existing && typeof existing === "object" ? existing : {}),
+  };
+  next.plugins = {
+    ...(next.plugins && typeof next.plugins === "object" ? next.plugins : {}),
+    entries: {
+      ...(next.plugins?.entries && typeof next.plugins.entries === "object" ? next.plugins.entries : {}),
+      [PLUGIN_ID]: {
+        ...(next.plugins?.entries?.[PLUGIN_ID] && typeof next.plugins.entries[PLUGIN_ID] === "object" ? next.plugins.entries[PLUGIN_ID] : {}),
+        enabled: true,
+        config: {
+          ...(next.plugins?.entries?.[PLUGIN_ID]?.config && typeof next.plugins.entries[PLUGIN_ID].config === "object" ? next.plugins.entries[PLUGIN_ID].config : {}),
+          apiKey,
+          endpoint: mcpEndpoint || DEFAULT_MCP_ENDPOINT,
+        },
+      },
+    },
+  };
+
+  await fs.mkdir(dir, { recursive: true, mode: 0o700 });
+  await fs.chmod(dir, 0o700).catch(() => {});
+  const tmp = `${resolvedPath}.tmp`;
+  await fs.writeFile(tmp, `${JSON.stringify(next, null, 2)}\n`, { mode: 0o600 });
+  await fs.rename(tmp, resolvedPath);
+  await fs.chmod(resolvedPath, 0o600).catch(() => {});
+  return resolvedPath;
+}
+
+async function resolveOpenClawConfigPath(value) {
+  if (value) return value;
+  if (process.env.OPENCLAW_CONFIG_PATH) return process.env.OPENCLAW_CONFIG_PATH;
+  const { join } = await import("node:path");
+  const { homedir } = await import("node:os");
+  return join(homedir(), ".openclaw", "openclaw.json");
+}
+
+async function readJsonFile(filePath) {
+  const fs = await import("node:fs/promises");
+  try {
+    const text = await fs.readFile(filePath, "utf8");
+    if (!text.trim()) return {};
+    return JSON.parse(text);
+  } catch (err) {
+    if (err && typeof err === "object" && err.code === "ENOENT") return {};
+    if (err instanceof SyntaxError) {
+      throw new Error(`OpenClaw config is not valid JSON: ${filePath}`);
+    }
+    throw err;
+  }
+}
+
+function buildSetupPrompt() {
+  return `Prompt for Agent
+Set up the Nessie OpenClaw plugin.
+
+Install & Configure
+
+Run: openclaw plugins install @nessielabs/nessie-openclaw
+
+Ask the user: "What's your email address? I'll send you a verification code to connect your Nessie account."
+Wait for their email, then run:
+openclaw nessie init --email EMAIL_PROVIDED_BY_USER
+
+Ask the user: "Check your email for a 6-digit code and paste it here."
+Wait for the code, then run:
+openclaw nessie init --email THEIR_EMAIL --code CODE_PROVIDED_BY_USER
+
+Run: openclaw nessie status
+Confirm it shows "Connected to Nessie."
+
+Test the connection by asking Nessie for a check-in. If the check-in returns profile sections or recent activity, report: "Nessie is connected."
+
+End of agent prompt`;
+}
+
 const plugin = {
   id: PLUGIN_ID,
   name: "Nessie",
@@ -463,6 +766,7 @@ const plugin = {
   register(api) {
     api.logger?.info?.(`${PLUGIN_ID}: registering Nessie tools`);
     registerNessieProviderAuth(api);
+    registerNessieCli(api);
     for (const definition of toolDefinitions) {
       registerNessieTool(api, definition);
     }
