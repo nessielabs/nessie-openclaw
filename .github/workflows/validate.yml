@@ -23,7 +23,63 @@ jobs:
 
       - name: Smoke-test native runtime
         run: |
-          node -e 'import("./index.js").then((m) => { if (!m.default || typeof m.default.register !== "function") throw new Error("missing plugin register"); })'
+          node --input-type=module <<'NODE'
+          const { default: plugin } = await import("./index.js");
+
+          class FakeCommand {
+            constructor(name) {
+              this.name = name;
+              this.children = new Map();
+            }
+
+            command(name) {
+              const key = name.split(/\s+/)[0];
+              const child = new FakeCommand(key);
+              this.children.set(key, child);
+              return child;
+            }
+
+            description() {
+              return this;
+            }
+
+            option() {
+              return this;
+            }
+
+            action(fn) {
+              this.actionFn = fn;
+              return this;
+            }
+          }
+
+          const program = new FakeCommand("openclaw");
+          let cliRegistrar;
+          let toolCount = 0;
+          plugin.register({
+            logger: { info() {}, warn() {} },
+            registerCli(registrar) {
+              cliRegistrar = registrar;
+            },
+            registerTool() {
+              toolCount += 1;
+            },
+          });
+
+          if (toolCount !== 0) {
+            throw new Error(`expected zero native tools, got ${toolCount}`);
+          }
+          if (typeof cliRegistrar !== "function") {
+            throw new Error("missing CLI registrar");
+          }
+          await cliRegistrar({ program });
+          if (!program.children.get("nessie")?.children.get("init")) {
+            throw new Error("missing openclaw nessie init command");
+          }
+          if (!program.children.get("nessie")?.children.get("status")) {
+            throw new Error("missing openclaw nessie status command");
+          }
+          NODE
 
       - name: Dry-run package
         run: npm pack --dry-run
