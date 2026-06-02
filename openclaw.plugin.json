@@ -3,6 +3,9 @@
   "name": "Nessie",
   "description": "Native OpenClaw plugin for searching, reading, and writing Nessie context through hosted MCP.",
   "version": "0.1.0",
+  "providers": [
+    "nessie"
+  ],
   "skills": [
     "skills/nessie"
   ],
@@ -19,6 +22,22 @@
       }
     ]
   },
+  "providerAuthChoices": [
+    {
+      "provider": "nessie",
+      "method": "api-key",
+      "choiceId": "nessie-api-key",
+      "choiceLabel": "Nessie API key",
+      "choiceHint": "Create an agent API key in Nessie Settings > API keys.",
+      "groupId": "nessie",
+      "groupLabel": "Nessie",
+      "assistantVisibility": "manual-only",
+      "optionKey": "nessieApiKey",
+      "cliFlag": "--nessie-api-key",
+      "cliOption": "--nessie-api-key <key>",
+      "cliDescription": "Nessie API key"
+    }
+  ],
   "uiHints": {
     "apiKey": {
       "label": "Nessie API key",

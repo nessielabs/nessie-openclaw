@@ -3,6 +3,7 @@ import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/
 import { Type } from "@sinclair/typebox";
 
 const PLUGIN_ID = "nessie-openclaw";
+const PROVIDER_ID = "nessie";
 const DEFAULT_MCP_ENDPOINT = "https://mcp.nessielabs.com/mcp";
 
 const sourceTypeSchema = Type.Optional(Type.Union([
@@ -242,15 +243,34 @@ function pluginConfig(rawConfig) {
   const cfg = rawConfig && typeof rawConfig === "object" && !Array.isArray(rawConfig)
     ? rawConfig
     : {};
-  const apiKey = resolveEnvRefs(cfg.apiKey) || process.env.NESSIE_API_KEY || "";
   const endpoint = (resolveEnvRefs(cfg.endpoint) || process.env.NESSIE_MCP_ENDPOINT || process.env.NESSIE_ENDPOINT || DEFAULT_MCP_ENDPOINT)
     .replace(/\/+$/, "");
-  return { apiKey, endpoint };
+  return {
+    apiKey: resolveEnvRefs(cfg.apiKey) || "",
+    endpoint,
+  };
 }
 
-async function callNessieTool(config, toolName, args = {}) {
-  if (!config.apiKey) {
-    throw new Error("Nessie API key is not configured. Set NESSIE_API_KEY or plugins.entries.nessie-openclaw.config.apiKey.");
+async function resolveNessieApiKey(api, config) {
+  if (config.apiKey) return config.apiKey;
+
+  const resolved = await api.runtime?.modelAuth?.resolveApiKeyForProvider?.({
+    provider: PROVIDER_ID,
+    cfg: api.config,
+  }).catch(() => null);
+  if (typeof resolved?.apiKey === "string" && resolved.apiKey.trim()) {
+    return resolved.apiKey.trim();
+  }
+
+  if (process.env.NESSIE_API_KEY) return process.env.NESSIE_API_KEY;
+
+  return "";
+}
+
+async function callNessieTool(api, config, toolName, args = {}) {
+  const apiKey = await resolveNessieApiKey(api, config);
+  if (!apiKey) {
+    throw new Error("Nessie API key is not configured. Run `openclaw models auth login --provider nessie`, set NESSIE_API_KEY, or configure plugins.entries.nessie-openclaw.config.apiKey.");
   }
 
   const client = new Client(
@@ -260,7 +280,7 @@ async function callNessieTool(config, toolName, args = {}) {
   const transport = new StreamableHTTPClientTransport(new URL(config.endpoint), {
     requestInit: {
       headers: {
-        Authorization: `Bearer ${config.apiKey}`,
+        Authorization: `Bearer ${apiKey}`,
       },
     },
   });
@@ -332,7 +352,7 @@ function registerNessieTool(api, definition) {
       async execute(_toolCallId, params) {
         const config = pluginConfig(api.pluginConfig);
         try {
-          const result = await callNessieTool(config, definition.name, params ?? {});
+          const result = await callNessieTool(api, config, definition.name, params ?? {});
           return toolResult(result);
         } catch (err) {
           api.logger?.warn?.(`${PLUGIN_ID}: ${definition.name} failed: ${err instanceof Error ? err.message : String(err)}`);
@@ -344,12 +364,105 @@ function registerNessieTool(api, definition) {
   );
 }
 
+function buildPluginConfigPatch(config) {
+  return {
+    plugins: {
+      ...config.plugins,
+      entries: {
+        ...config.plugins?.entries,
+        [PLUGIN_ID]: {
+          ...config.plugins?.entries?.[PLUGIN_ID],
+          enabled: true,
+          config: {
+            ...config.plugins?.entries?.[PLUGIN_ID]?.config,
+            endpoint: config.plugins?.entries?.[PLUGIN_ID]?.config?.endpoint || DEFAULT_MCP_ENDPOINT,
+          },
+        },
+      },
+    },
+  };
+}
+
+function normalizeApiKey(value) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function validateNessieApiKey(value) {
+  const apiKey = normalizeApiKey(value);
+  if (!apiKey) return "Enter a Nessie API key.";
+  if (!apiKey.startsWith("sk_nes_v1_")) return "Nessie API keys start with sk_nes_v1_.";
+  return undefined;
+}
+
+function createApiKeyCredential(apiKey) {
+  return {
+    type: "api_key",
+    provider: PROVIDER_ID,
+    key: apiKey,
+    metadata: {
+      source: PLUGIN_ID,
+    },
+  };
+}
+
+function registerNessieProviderAuth(api) {
+  if (typeof api.registerProvider !== "function") return;
+
+  api.registerProvider({
+    id: PROVIDER_ID,
+    pluginId: PLUGIN_ID,
+    label: "Nessie",
+    docsPath: "/plugins/nessie-openclaw",
+    envVars: ["NESSIE_API_KEY"],
+    auth: [
+      {
+        id: "api-key",
+        label: "Nessie API key",
+        hint: "Create an agent API key in Nessie Settings > API keys.",
+        kind: "api_key",
+        async run(ctx) {
+          const flagValue = normalizeApiKey(ctx.opts?.nessieApiKey ?? ctx.opts?.token);
+          const apiKey = flagValue || await ctx.prompter.text({
+            message: "Enter your Nessie API key:",
+            placeholder: "sk_nes_v1_...",
+            sensitive: true,
+            validate: validateNessieApiKey,
+          });
+          const normalized = normalizeApiKey(apiKey);
+          const validation = validateNessieApiKey(normalized);
+          if (validation) throw new Error(validation);
+
+          return {
+            profiles: [{
+              profileId: "nessie:default",
+              credential: createApiKeyCredential(normalized),
+            }],
+            configPatch: buildPluginConfigPatch(ctx.config),
+            notes: ["Nessie OpenClaw plugin enabled. Nessie tool calls will use the stored OpenClaw auth profile."],
+          };
+        },
+      },
+    ],
+    staticCatalog: {
+      async run() {
+        return null;
+      },
+    },
+    catalog: {
+      async run() {
+        return null;
+      },
+    },
+  });
+}
+
 const plugin = {
   id: PLUGIN_ID,
   name: "Nessie",
   description: "Search, read, and write Nessie context from OpenClaw through the hosted Nessie MCP server.",
   register(api) {
     api.logger?.info?.(`${PLUGIN_ID}: registering Nessie tools`);
+    registerNessieProviderAuth(api);
     for (const definition of toolDefinitions) {
       registerNessieTool(api, definition);
     }
