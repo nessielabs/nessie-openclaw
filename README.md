@@ -28,7 +28,7 @@ scripts/validate.sh
 Once published to ClawHub:
 
 ```bash
-openclaw plugins install clawhub:nessie-openclaw
+openclaw plugins install clawhub:@nessielabs/nessie-openclaw
 ```
 
 For local development:
@@ -93,7 +93,7 @@ ClawHub/OpenClaw plugin installs use package update records, so future releases
 can be picked up with:
 
 ```bash
-openclaw plugins update nessie-openclaw
+openclaw plugins update @nessielabs/nessie-openclaw
 ```
 
 ## Validate
