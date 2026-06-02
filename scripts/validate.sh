@@ -38,10 +38,15 @@ if not openclaw.get("compat", {}).get("pluginApi"):
 manifest = json.loads((root / "openclaw.plugin.json").read_text(encoding="utf-8"))
 if manifest.get("id") != "nessie-openclaw":
     raise SystemExit("openclaw.plugin.json id must be nessie-openclaw")
+if "nessie" not in manifest.get("providers", []):
+    raise SystemExit("openclaw.plugin.json providers must include nessie")
 if manifest.get("skills") != ["skills/nessie"]:
     raise SystemExit("openclaw.plugin.json must load skills/nessie")
 if "NESSIE_API_KEY" not in json.dumps(manifest):
     raise SystemExit("openclaw.plugin.json must declare NESSIE_API_KEY setup metadata")
+auth_choices = manifest.get("providerAuthChoices", [])
+if not any(choice.get("provider") == "nessie" and choice.get("method") == "api-key" and choice.get("choiceId") == "nessie-api-key" for choice in auth_choices):
+    raise SystemExit("openclaw.plugin.json must declare the nessie-api-key provider auth choice")
 expected_tools = [
     "nessie_team_list",
     "nessie_integration_list",
@@ -75,6 +80,8 @@ for needle in [
     "registerTool",
     "StreamableHTTPClientTransport",
     "client.callTool",
+    "registerProvider",
+    "resolveApiKeyForProvider",
     "https://mcp.nessielabs.com/mcp",
     "NESSIE_API_KEY",
 ]:
@@ -93,7 +100,7 @@ for needle in ["requires:", "primaryEnv: NESSIE_API_KEY", "envVars:"]:
         raise SystemExit(f"skills/nessie/SKILL.md must declare {needle}")
 
 readme = (root / "README.md").read_text(encoding="utf-8")
-for needle in ["openclaw plugins install", "NESSIE_API_KEY", "https://mcp.nessielabs.com/mcp"]:
+for needle in ["openclaw plugins install", "openclaw models auth login --provider nessie", "NESSIE_API_KEY", "https://mcp.nessielabs.com/mcp"]:
     if needle not in readme:
         raise SystemExit(f"README.md must mention {needle}")
 for tool in expected_tools:
