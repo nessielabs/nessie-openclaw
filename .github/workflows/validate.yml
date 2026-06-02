@@ -15,5 +15,15 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Install dependencies
+        run: npm ci
+
       - name: Validate package
-        run: scripts/validate.sh
+        run: npm run validate
+
+      - name: Smoke-test native runtime
+        run: |
+          node -e 'import("./index.js").then((m) => { if (!m.default || typeof m.default.register !== "function") throw new Error("missing plugin register"); })'
+
+      - name: Dry-run package
+        run: npm pack --dry-run

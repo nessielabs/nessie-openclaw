@@ -1,0 +1,147 @@
+{
+  "id": "nessie-openclaw",
+  "name": "Nessie",
+  "description": "Native OpenClaw plugin for searching and reading Nessie context.",
+  "version": "0.1.0",
+  "skills": [
+    "skills/nessie"
+  ],
+  "setup": {
+    "providers": [
+      {
+        "id": "nessie",
+        "envVars": [
+          "NESSIE_API_KEY"
+        ]
+      }
+    ]
+  },
+  "uiHints": {
+    "apiKey": {
+      "label": "Nessie API key",
+      "sensitive": true,
+      "placeholder": "sk_nes_v1_...",
+      "help": "Create this in Nessie Settings > API keys. Use ${NESSIE_API_KEY} to avoid storing the value inline."
+    },
+    "endpoint": {
+      "label": "Nessie endpoint",
+      "placeholder": "https://mcp.nessielabs.com",
+      "advanced": true,
+      "help": "Override only for staging or local development."
+    }
+  },
+  "contracts": {
+    "tools": [
+      "nessie_check_in",
+      "nessie_ls",
+      "nessie_search",
+      "nessie_read",
+      "nessie_create_context",
+      "nessie_edit_context"
+    ]
+  },
+  "toolMetadata": {
+    "nessie_check_in": {
+      "authSignals": [
+        {
+          "provider": "nessie"
+        }
+      ],
+      "configSignals": [
+        {
+          "rootPath": "plugins.entries.nessie-openclaw.config",
+          "required": [
+            "apiKey"
+          ]
+        }
+      ]
+    },
+    "nessie_ls": {
+      "authSignals": [
+        {
+          "provider": "nessie"
+        }
+      ],
+      "configSignals": [
+        {
+          "rootPath": "plugins.entries.nessie-openclaw.config",
+          "required": [
+            "apiKey"
+          ]
+        }
+      ]
+    },
+    "nessie_search": {
+      "authSignals": [
+        {
+          "provider": "nessie"
+        }
+      ],
+      "configSignals": [
+        {
+          "rootPath": "plugins.entries.nessie-openclaw.config",
+          "required": [
+            "apiKey"
+          ]
+        }
+      ]
+    },
+    "nessie_read": {
+      "authSignals": [
+        {
+          "provider": "nessie"
+        }
+      ],
+      "configSignals": [
+        {
+          "rootPath": "plugins.entries.nessie-openclaw.config",
+          "required": [
+            "apiKey"
+          ]
+        }
+      ]
+    },
+    "nessie_create_context": {
+      "authSignals": [
+        {
+          "provider": "nessie"
+        }
+      ],
+      "configSignals": [
+        {
+          "rootPath": "plugins.entries.nessie-openclaw.config",
+          "required": [
+            "apiKey"
+          ]
+        }
+      ]
+    },
+    "nessie_edit_context": {
+      "authSignals": [
+        {
+          "provider": "nessie"
+        }
+      ],
+      "configSignals": [
+        {
+          "rootPath": "plugins.entries.nessie-openclaw.config",
+          "required": [
+            "apiKey"
+          ]
+        }
+      ]
+    }
+  },
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "apiKey": {
+        "type": "string"
+      },
+      "endpoint": {
+        "type": "string"
+      }
+    }
+  }
+}
