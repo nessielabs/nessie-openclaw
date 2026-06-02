@@ -1,0 +1,14 @@
+{
+  "mcp": {
+    "servers": {
+      "nessie": {
+        "url": "https://mcp.nessielabs.com/mcp",
+        "transport": "streamable-http",
+        "headers": {
+          "Authorization": "Bearer ${NESSIE_API_KEY}"
+        },
+        "connectionTimeoutMs": 30000
+      }
+    }
+  }
+}

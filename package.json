@@ -1,0 +1,22 @@
+{
+  "name": "nessie-openclaw",
+  "version": "0.1.0",
+  "description": "OpenClaw plugin bundle for Nessie context over hosted MCP.",
+  "license": "MIT-0",
+  "homepage": "https://nessielabs.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nessielabs/nessie-openclaw.git"
+  },
+  "files": [
+    ".mcp.json",
+    ".codex-plugin",
+    "skills",
+    "scripts",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "validate": "bash scripts/validate.sh"
+  }
+}
