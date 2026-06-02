@@ -47,6 +47,16 @@ and bundled skill instructions are loaded.
 Create an agent API key in Nessie, then make it available to OpenClaw:
 
 ```bash
+openclaw models auth login --provider nessie
+```
+
+OpenClaw will prompt for the key and store it as the native `nessie:default`
+auth profile.
+
+Environment variables and plugin config are also supported for development and
+CI:
+
+```bash
 export NESSIE_API_KEY="sk_nes_v1_..."
 ```
 
@@ -67,7 +77,13 @@ Or configure it in `openclaw.json` using an environment reference:
 }
 ```
 
-The native plugin sends:
+The native plugin resolves the API key in this order:
+
+1. `plugins.entries.nessie-openclaw.config.apiKey`
+2. OpenClaw's native `nessie` auth profile
+3. `NESSIE_API_KEY`
+
+It then sends:
 
 ```text
 Authorization: Bearer ${NESSIE_API_KEY}

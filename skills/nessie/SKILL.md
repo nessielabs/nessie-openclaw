@@ -123,6 +123,7 @@ everything.
 ## Authentication Failures
 
 If Nessie tool calls fail with an authentication or entitlement error, tell the
-user to create a Nessie agent API key and set it as `NESSIE_API_KEY` in the
-OpenClaw environment. Do not ask the user to run a device-code login flow for
-this plugin.
+user to create a Nessie agent API key and run
+`openclaw models auth login --provider nessie`, or set the key as
+`NESSIE_API_KEY` in the OpenClaw environment. Do not ask the user to run a
+device-code login flow for this plugin.
