@@ -347,6 +347,7 @@ async function writeOpenClawConfig({ apiKey, configPath, mcpEndpoint }) {
     servers: {
       ...(next.mcp?.servers && typeof next.mcp.servers === "object" ? next.mcp.servers : {}),
       [MCP_SERVER_NAME]: buildNessieMcpServerConfig({
+        existing: next.mcp?.servers?.[MCP_SERVER_NAME],
         apiKey,
         endpoint: mcpEndpoint,
       }),
@@ -361,11 +362,17 @@ async function writeOpenClawConfig({ apiKey, configPath, mcpEndpoint }) {
   return resolvedPath;
 }
 
-function buildNessieMcpServerConfig({ apiKey, endpoint }) {
+function buildNessieMcpServerConfig({ existing, apiKey, endpoint }) {
+  const existingServer = existing && typeof existing === "object" && !Array.isArray(existing) ? existing : {};
+  const existingHeaders = existingServer.headers && typeof existingServer.headers === "object" && !Array.isArray(existingServer.headers)
+    ? existingServer.headers
+    : {};
   return {
+    ...existingServer,
     transport: "streamable-http",
     url: resolveMcpEndpoint(endpoint),
     headers: {
+      ...existingHeaders,
       Authorization: `Bearer ${apiKey}`,
     },
   };
