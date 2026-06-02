@@ -8,7 +8,10 @@ const DEFAULT_SETUP_BASE_URL = "https://mcp.nessielabs.com";
 const REQUEST_TIMEOUT_MS = 20_000;
 
 function registerNessieCli(api) {
-  if (typeof api.registerCli !== "function") return;
+  if (typeof api.registerCli !== "function") {
+    api.logger?.warn?.(`${PLUGIN_ID}: OpenClaw plugin API does not expose registerCli; Nessie setup commands were not registered.`);
+    return false;
+  }
 
   api.registerCli(async ({ program }) => {
     const command = program
@@ -21,8 +24,8 @@ function registerNessieCli(api) {
       .option("--email <email>", "Nessie account email for OTP setup")
       .option("--code <code>", "6-digit OTP code sent by Nessie")
       .option("--api-key <key>", "Nessie API key created in the Nessie app")
-      .option("--endpoint <url>", "Nessie setup API base URL", DEFAULT_SETUP_BASE_URL)
-      .option("--mcp-endpoint <url>", "Nessie MCP endpoint", DEFAULT_MCP_ENDPOINT)
+      .option("--endpoint <url>", "Nessie setup API base URL")
+      .option("--mcp-endpoint <url>", "Nessie MCP endpoint")
       .option("--config <path>", "OpenClaw config path")
       .option("--json", "Print machine-readable JSON")
       .action(async (opts) => {
@@ -46,6 +49,7 @@ function registerNessieCli(api) {
       hasSubcommands: true,
     }],
   });
+  return true;
 }
 
 async function handleNessieInit(opts) {
@@ -61,6 +65,7 @@ async function handleNessieInit(opts) {
       mcpEndpoint: opts.mcpEndpoint,
     });
     printResult(opts, {
+      connected: true,
       status: "connected",
       message: "Connected to Nessie.",
       configPath,
@@ -70,17 +75,25 @@ async function handleNessieInit(opts) {
 
   const email = normalizeEmail(opts.email);
   const code = normalizeOtpCode(opts.code);
+  const codeWasProvided = typeof opts.code !== "undefined";
   if (!email) {
     throw new Error("Run `openclaw nessie init --email you@example.com`, or pass `--api-key sk_nes_v1_...`.");
   }
 
   const baseUrl = resolveSetupBaseUrl(opts.endpoint);
+  if (codeWasProvided && !code) {
+    throw new Error("Pass a non-empty 6-digit OTP code, or omit --code to request a new code.");
+  }
+  if (code && !/^\d{6}$/.test(code)) {
+    throw new Error("Nessie OTP codes must be 6 digits.");
+  }
   if (!code) {
     await postSetupJson(`${baseUrl}/agent/openclaw/otp/start`, {
       email,
       client: "openclaw",
     });
     printResult(opts, {
+      connected: false,
       status: "otp_sent",
       message: "Check your email for a 6-digit code, then run `openclaw nessie init --email <email> --code <code>`.",
       email,
@@ -105,6 +118,7 @@ async function handleNessieInit(opts) {
     mcpEndpoint: opts.mcpEndpoint,
   });
   printResult(opts, {
+    connected: true,
     status: "connected",
     message: "Connected to Nessie.",
     configPath,
@@ -116,7 +130,7 @@ async function handleNessieStatus(opts) {
   const config = await readJsonFile(configPath);
   const server = config?.mcp?.servers?.[MCP_SERVER_NAME];
   const apiKey = resolveApiKeyFromMcpServer(server) || process.env.NESSIE_API_KEY || "";
-  const endpoint = normalizeEndpoint(opts.mcpEndpoint || server?.url || DEFAULT_MCP_ENDPOINT);
+  const endpoint = resolveMcpEndpoint(opts.mcpEndpoint || server?.url);
 
   if (!apiKey) {
     printResult(opts, {
@@ -233,23 +247,30 @@ function resolveSetupBaseUrl(value) {
   return raw.endsWith("/mcp") ? raw.slice(0, -4) : raw;
 }
 
+function resolveMcpEndpoint(value) {
+  return normalizeEndpoint(value || process.env.NESSIE_MCP_ENDPOINT || process.env.NESSIE_ENDPOINT || DEFAULT_MCP_ENDPOINT);
+}
+
 function normalizeEndpoint(value) {
   return String(value || DEFAULT_MCP_ENDPOINT).trim().replace(/\/+$/, "");
 }
 
 async function postSetupJson(url, body) {
-  const response = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  const text = await response.text();
-  const data = parseJson(text);
-  if (!response.ok) {
-    const message = data?.error_description || data?.message || data?.error || text || `HTTP ${response.status}`;
-    throw new Error(message);
-  }
-  return data ?? {};
+  return withTimeout(async (signal) => {
+    const response = await fetch(url, {
+      method: "POST",
+      signal,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const text = await response.text();
+    const data = parseJson(text);
+    if (!response.ok) {
+      const message = data?.error_description || data?.message || data?.error || text || `HTTP ${response.status}`;
+      throw new Error(message);
+    }
+    return data ?? {};
+  }, REQUEST_TIMEOUT_MS, "Nessie setup request timed out.");
 }
 
 function parseJson(text) {
@@ -303,7 +324,7 @@ async function writeOpenClawConfig({ apiKey, configPath, mcpEndpoint }) {
         enabled: true,
         config: {
           ...(next.plugins?.entries?.[PLUGIN_ID]?.config && typeof next.plugins.entries[PLUGIN_ID].config === "object" ? next.plugins.entries[PLUGIN_ID].config : {}),
-          endpoint: normalizeEndpoint(mcpEndpoint || DEFAULT_MCP_ENDPOINT),
+          endpoint: resolveMcpEndpoint(mcpEndpoint),
         },
       },
     },
@@ -321,7 +342,6 @@ async function writeOpenClawConfig({ apiKey, configPath, mcpEndpoint }) {
   };
 
   await fs.mkdir(dir, { recursive: true, mode: 0o700 });
-  await fs.chmod(dir, 0o700).catch(() => {});
   const tmp = `${resolvedPath}.tmp`;
   await fs.writeFile(tmp, `${JSON.stringify(next, null, 2)}\n`, { mode: 0o600 });
   await fs.rename(tmp, resolvedPath);
@@ -332,7 +352,7 @@ async function writeOpenClawConfig({ apiKey, configPath, mcpEndpoint }) {
 function buildNessieMcpServerConfig({ apiKey, endpoint }) {
   return {
     transport: "streamable-http",
-    url: normalizeEndpoint(endpoint || DEFAULT_MCP_ENDPOINT),
+    url: resolveMcpEndpoint(endpoint),
     headers: {
       Authorization: `Bearer ${apiKey}`,
     },
@@ -367,8 +387,9 @@ const plugin = {
   name: "Nessie",
   description: "Configure OpenClaw to use the hosted Nessie MCP server.",
   register(api) {
-    api.logger?.info?.(`${PLUGIN_ID}: registering Nessie setup CLI`);
-    registerNessieCli(api);
+    if (registerNessieCli(api)) {
+      api.logger?.info?.(`${PLUGIN_ID}: registered Nessie setup CLI`);
+    }
   },
 };
 
