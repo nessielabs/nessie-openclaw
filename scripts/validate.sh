@@ -40,6 +40,10 @@ if manifest.get("skills") != ["skills/nessie"]:
     raise SystemExit("openclaw.plugin.json must load skills/nessie")
 if "NESSIE_API_KEY" not in json.dumps(manifest):
     raise SystemExit("openclaw.plugin.json must declare NESSIE_API_KEY setup metadata")
+auth_methods = manifest.get("setup", {}).get("providers", [{}])[0].get("authMethods", [])
+for method in ["api-key", "otp"]:
+    if method not in auth_methods:
+        raise SystemExit(f"openclaw.plugin.json setup authMethods must include {method}")
 if "contracts" in manifest or "toolMetadata" in manifest:
     raise SystemExit("openclaw.plugin.json must not mirror hosted MCP tool contracts")
 
@@ -54,6 +58,7 @@ for needle in [
     "/agent/openclaw/otp/verify",
     "StreamableHTTPClientTransport",
     "client.listTools",
+    "Nessie setup request timed out.",
     "https://mcp.nessielabs.com/mcp",
     "NESSIE_API_KEY",
 ]:

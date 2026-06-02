@@ -75,6 +75,9 @@ openclaw nessie init --api-key "sk_nes_v1_..."
 ```
 
 This writes the same OpenClaw MCP server config used by the OTP setup flow.
+Both setup paths store the bearer key in the local OpenClaw config file in
+plaintext with `0600` permissions so OpenClaw can use the hosted MCP server
+without extra shell setup.
 
 The setup command writes this shape to `openclaw.json`:
 
@@ -104,8 +107,9 @@ The setup command writes this shape to `openclaw.json`:
 }
 ```
 
-For development and CI, you can also configure `mcp.servers.nessie` manually
-with an environment reference such as `Bearer ${NESSIE_API_KEY}`.
+For development and CI, you can avoid inline key storage by configuring
+`mcp.servers.nessie` manually with an environment reference such as
+`Bearer ${NESSIE_API_KEY}`.
 
 The Nessie backend remains authoritative for access control. The API key maps
 to a Nessie user server-side and each MCP request is still checked against the
