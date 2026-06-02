@@ -1,105 +1,103 @@
-# nessie-skill
+# Nessie OpenClaw
 
-Nessie Skill gives AI agents access to a user's Nessie context library.
+Nessie OpenClaw is the public OpenClaw plugin bundle for connecting an
+OpenClaw agent to a user's Nessie context library.
 
-This package is intentionally agent-host agnostic. It contains shared cloud
-client scripts plus small adapters for hosts with different skill systems.
+The plugin uses the hosted Nessie MCP server. Users authenticate by creating an
+agent API key in Nessie and exposing it to OpenClaw as `NESSIE_API_KEY`; no
+local Nessie app or device-code login flow is required at runtime.
 
-## Supported Hosts
+## What This Package Contains
 
-- OpenClaw: installs a native `~/.openclaw/skills/nessie` skill.
-- Hermes Agent: installs a native `~/.hermes/skills/productivity/nessie` skill
-  and documents the preferred remote MCP configuration.
+```text
+.mcp.json
+  Hosted Nessie MCP server configuration for OpenClaw.
+.codex-plugin/plugin.json
+  Bundle marker and package metadata that OpenClaw can map into native
+  capabilities.
+skills/nessie/
+  Agent instructions for when and how to use Nessie context.
+package.json
+  ClawHub/package metadata.
+scripts/validate.sh
+  Static package validation.
+```
 
 ## Install
 
-OpenClaw:
+Once published to ClawHub:
 
 ```bash
-./adapters/openclaw/install.sh
+openclaw plugins install clawhub:nessie-openclaw
 ```
 
-Hermes:
+For local development:
 
 ```bash
-./adapters/hermes/install.sh
+openclaw plugins install --link .
+openclaw plugins enable nessie-openclaw
 ```
+
+Restart the OpenClaw gateway/session after installation so the bundled MCP
+configuration and skill instructions are loaded.
 
 ## Authentication
 
-The skill uses hosted Nessie auth. Run:
+Create an agent API key in Nessie, then make it available to OpenClaw:
 
 ```bash
-~/.config/nessie/skill/scripts/login.sh
+export NESSIE_API_KEY="nsk_agent_..."
 ```
 
-The login script starts a device activation flow, asks the user to open
-`https://nessielabs.com/activate`, and stores short-lived access credentials in:
+OpenClaw reads `.mcp.json` and sends:
 
 ```text
-~/.config/nessie/agent.json
+Authorization: Bearer ${NESSIE_API_KEY}
 ```
 
-The hosted API remains authoritative for access control. If a user does not
-have Nessie Pro access or an active trial, requests fail server-side.
-
-## Configuration
-
-The scripts default to the production-hosted API:
+to the hosted Nessie MCP endpoint:
 
 ```text
-NESSIE_ENDPOINT=https://mcp.nessielabs.com
+https://mcp.nessielabs.com/mcp
 ```
 
-For development or staging, override it before running a command:
+The Nessie backend remains authoritative for access control. The API key maps
+to a Nessie user server-side and each request is still checked against the
+user's Pro/trial entitlement.
+
+## Agent Behavior
+
+The bundled skill teaches OpenClaw to:
+
+- run a Nessie check-in when the user asks for it;
+- search Nessie before answering questions about prior work, decisions,
+  projects, conversations, notes, or saved context;
+- read full sources before making strong claims;
+- create or update Nessie contexts only when the user asks to save durable
+  knowledge.
+
+OpenClaw registers bundled MCP tools with provider-safe names. Depending on the
+host display, Nessie tools may appear as `nessie__search`/`nessie__read` or as
+the upstream tool names from the hosted MCP server.
+
+## Publishing
+
+ClawHub publishes plugin packages from a local folder or GitHub source:
 
 ```bash
-NESSIE_ENDPOINT=http://127.0.0.1:8787 ~/.config/nessie/skill/scripts/login.sh
+clawhub package publish nessielabs/nessie-openclaw --dry-run
+clawhub package publish nessielabs/nessie-openclaw
 ```
 
-The device activation client name defaults to `nessie-skill`. Override
-`NESSIE_AGENT_CLIENT` if an adapter wants a more specific value in server logs.
+ClawHub/OpenClaw plugin installs use package update records, so future releases
+can be picked up with:
 
-## Repository Layout
-
-```text
-shared/
-  AGENT_WORKFLOWS.md   Shared research, synthesis, and write-back behavior.
-  auth.sh              Shared token loading and refresh helpers.
-  login.sh             Device activation login flow.
-  ls.sh                List source worlds or child nodes.
-  search.sh            Search Nessie.
-  read.sh              Read a Nessie source node.
-  create-context.sh    Create a context.
-  edit-context.sh      Edit a context by exact replacement.
-adapters/
-  openclaw/
-    SKILL.md
-    install.sh
-  hermes/
-    SKILL.md
-    install.sh
-scripts/
-  validate.sh          Syntax-check scripts and dry-run both installers.
+```bash
+openclaw plugins update nessie-openclaw
 ```
 
 ## Validate
 
 ```bash
-scripts/validate.sh
+npm run validate
 ```
-
-The validation script runs `bash -n` on every shell script and installs the
-OpenClaw and Hermes adapters into a temporary home directory.
-
-## Development Status
-
-This package expects the hosted Nessie agent API endpoints:
-
-- `POST /agent/device/start`
-- `POST /agent/device/token`
-- `POST /agent/tools/ls`
-- `POST /agent/tools/search`
-- `POST /agent/tools/read`
-- `POST /agent/tools/context/create`
-- `POST /agent/tools/context/edit`
