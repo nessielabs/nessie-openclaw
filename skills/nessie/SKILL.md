@@ -1,3 +1,20 @@
+---
+name: nessie
+description: Search and read the user's Nessie context library from OpenClaw through hosted MCP.
+version: 0.1.0
+metadata:
+  openclaw:
+    requires:
+      env:
+        - NESSIE_API_KEY
+    primaryEnv: NESSIE_API_KEY
+    envVars:
+      - name: NESSIE_API_KEY
+        required: true
+        description: Nessie API key created in the Nessie app settings.
+    homepage: https://github.com/nessielabs/nessie-openclaw
+---
+
 # Nessie
 
 Use Nessie when the user asks about their prior work, decisions, projects,
