@@ -21,14 +21,14 @@ Use Nessie when the user asks about their prior work, decisions, projects,
 saved context, notes, AI conversations, relationships, or anything they may
 have discussed or researched before.
 
-Nessie is available through MCP tools exposed by the `nessie` server. Prefer
-the MCP tools over shell commands; this plugin intentionally does not require a
-local Nessie app or copied scripts.
+Nessie is available through native OpenClaw tools registered by the
+`nessie-openclaw` plugin. Prefer these tools over shell commands; this plugin
+intentionally does not require a local Nessie app or copied scripts.
 
 ## First Step
 
 If the user says "Nessie check-in", "check in with Nessie", or asks to load
-their Nessie context before continuing, call the Nessie check-in MCP tool.
+their Nessie context before continuing, call the native Nessie check-in tool.
 
 Treat the check-in output as context for the session. If the user then asks a
 specific follow-up, continue with the normal search, read, and answer loop.
@@ -46,11 +46,9 @@ specific follow-up, continue with the normal search, read, and answer loop.
 
 ## Available Operations
 
-Use the Nessie MCP tools exposed by the host. OpenClaw bundle MCP tools may be
-shown with a server prefix such as `nessie__search`; other hosts may show the
-upstream hosted-MCP names such as `nessie_search`. Match by operation:
+Use the Nessie tools exposed by the native plugin:
 
-- check-in: load generated profile sections and recent activity.
+- check-in: load profile and source overview context.
 - list: list source worlds or children under a source node.
 - search: search contexts, transcripts, notes, and other sources.
 - read: read a source document or node in full.
@@ -111,7 +109,7 @@ everything.
 
 ## Authentication Failures
 
-If Nessie MCP calls fail with an authentication or entitlement error, tell the
+If Nessie tool calls fail with an authentication or entitlement error, tell the
 user to create a Nessie agent API key and set it as `NESSIE_API_KEY` in the
 OpenClaw environment. Do not ask the user to run a device-code login flow for
 this plugin.

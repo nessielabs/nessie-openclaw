@@ -1,20 +1,20 @@
 # Nessie OpenClaw
 
-Nessie OpenClaw is the public OpenClaw plugin bundle for connecting an
+Nessie OpenClaw is the public native OpenClaw plugin for connecting an
 OpenClaw agent to a user's Nessie context library.
 
-The plugin uses the hosted Nessie MCP server. Users authenticate by creating an
-agent API key in Nessie and exposing it to OpenClaw as `NESSIE_API_KEY`; no
-local Nessie app or device-code login flow is required at runtime.
+The plugin uses hosted Nessie agent endpoints backed by the same MCP tool
+implementations. Users authenticate by creating an API key in Nessie and
+exposing it to OpenClaw as `NESSIE_API_KEY` or as plugin config; no local
+Nessie app or device-code login flow is required at runtime.
 
 ## What This Package Contains
 
 ```text
-.mcp.json
-  Hosted Nessie MCP server configuration for OpenClaw.
-.codex-plugin/plugin.json
-  Bundle marker and package metadata that OpenClaw can map into native
-  capabilities.
+openclaw.plugin.json
+  Native plugin manifest, config schema, setup hints, and tool ownership.
+index.js
+  Native OpenClaw runtime that registers Nessie tools and calls hosted Nessie.
 skills/nessie/
   Agent instructions for when and how to use Nessie context.
 package.json
@@ -29,6 +29,7 @@ Once published to ClawHub:
 
 ```bash
 openclaw plugins install clawhub:@nessielabs/nessie-openclaw
+openclaw plugins enable nessie-openclaw
 ```
 
 For local development:
@@ -38,8 +39,8 @@ openclaw plugins install --link .
 openclaw plugins enable nessie-openclaw
 ```
 
-Restart the OpenClaw gateway/session after installation so the bundled MCP
-configuration and skill instructions are loaded.
+Restart the OpenClaw gateway/session after installation so the native runtime
+and bundled skill instructions are loaded.
 
 ## Authentication
 
@@ -49,17 +50,30 @@ Create an agent API key in Nessie, then make it available to OpenClaw:
 export NESSIE_API_KEY="sk_nes_v1_..."
 ```
 
-OpenClaw reads `.mcp.json` and sends:
+Or configure it in `openclaw.json` using an environment reference:
+
+```json
+{
+  "plugins": {
+    "entries": {
+      "nessie-openclaw": {
+        "enabled": true,
+        "config": {
+          "apiKey": "${NESSIE_API_KEY}"
+        }
+      }
+    }
+  }
+}
+```
+
+The native plugin sends:
 
 ```text
 Authorization: Bearer ${NESSIE_API_KEY}
 ```
 
-to the hosted Nessie MCP endpoint:
-
-```text
-https://mcp.nessielabs.com/mcp
-```
+to the hosted Nessie endpoint `https://mcp.nessielabs.com`.
 
 The Nessie backend remains authoritative for access control. The API key maps
 to a Nessie user server-side and each request is still checked against the
@@ -76,9 +90,14 @@ The bundled skill teaches OpenClaw to:
 - create or update Nessie contexts only when the user asks to save durable
   knowledge.
 
-OpenClaw registers bundled MCP tools with provider-safe names. Depending on the
-host display, Nessie tools may appear as `nessie__search`/`nessie__read` or as
-the upstream tool names from the hosted MCP server.
+The native plugin registers these tools:
+
+- `nessie_check_in`
+- `nessie_ls`
+- `nessie_search`
+- `nessie_read`
+- `nessie_create_context`
+- `nessie_edit_context`
 
 ## Publishing
 
