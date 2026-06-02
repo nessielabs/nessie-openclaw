@@ -81,5 +81,114 @@ jobs:
           }
           NODE
 
+      - name: Smoke-test MCP config merge
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from "node:fs/promises";
+          import os from "node:os";
+          import path from "node:path";
+          const { default: plugin } = await import("./index.js");
+
+          class FakeCommand {
+            constructor(name) {
+              this.name = name;
+              this.children = new Map();
+            }
+
+            command(name) {
+              const key = name.split(/\s+/)[0];
+              const child = new FakeCommand(key);
+              this.children.set(key, child);
+              return child;
+            }
+
+            description() {
+              return this;
+            }
+
+            option() {
+              return this;
+            }
+
+            action(fn) {
+              this.actionFn = fn;
+              return this;
+            }
+          }
+
+          const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "nessie-openclaw-"));
+          const configPath = path.join(tmpDir, "openclaw.json");
+          await fs.writeFile(configPath, JSON.stringify({
+            mcp: {
+              servers: {
+                nessie: {
+                  transport: "streamable-http",
+                  url: "https://old.example.com/mcp",
+                  headers: {
+                    authorization: "Bearer OLD",
+                    "X-Proxy-Auth": "proxy-secret",
+                  },
+                  customSetting: "keep-me",
+                },
+              },
+            },
+          }, null, 2));
+
+          const originalFetch = globalThis.fetch;
+          globalThis.fetch = async (_url, init = {}) => {
+            const body = JSON.parse(init.body || "{}");
+            const result = body.method === "initialize"
+              ? { jsonrpc: "2.0", id: body.id, result: { protocolVersion: "2025-03-26", capabilities: {}, serverInfo: { name: "fake", version: "0.0.0" } } }
+              : { jsonrpc: "2.0", id: body.id, result: { tools: [] } };
+            return {
+              ok: true,
+              status: 200,
+              headers: {
+                get(name) {
+                  return String(name).toLowerCase() === "content-type" ? "application/json" : null;
+                },
+              },
+              async json() {
+                return result;
+              },
+              async text() {
+                return JSON.stringify(result);
+              },
+            };
+          };
+
+          const program = new FakeCommand("openclaw");
+          let cliRegistrar;
+          plugin.register({
+            logger: { info() {}, warn() {} },
+            registerCli(registrar) {
+              cliRegistrar = registrar;
+            },
+          });
+          await cliRegistrar({ program });
+          await program.children.get("nessie").children.get("init").actionFn({
+            apiKey: "sk_nes_v1_rotated",
+            config: configPath,
+            mcpEndpoint: "https://mcp.nessielabs.com/mcp",
+            json: true,
+          });
+          globalThis.fetch = originalFetch;
+
+          const config = JSON.parse(await fs.readFile(configPath, "utf8"));
+          const server = config.mcp.servers.nessie;
+          if (server.customSetting !== "keep-me") {
+            throw new Error("custom server field was not preserved");
+          }
+          if (server.headers["X-Proxy-Auth"] !== "proxy-secret") {
+            throw new Error("custom header was not preserved");
+          }
+          if (server.headers.authorization) {
+            throw new Error("lowercase stale authorization header was preserved");
+          }
+          if (server.headers.Authorization !== "Bearer sk_nes_v1_rotated") {
+            throw new Error("Authorization header was not rotated");
+          }
+          NODE
+
       - name: Dry-run package
         run: npm pack --dry-run

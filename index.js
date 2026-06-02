@@ -367,12 +367,15 @@ function buildNessieMcpServerConfig({ existing, apiKey, endpoint }) {
   const existingHeaders = existingServer.headers && typeof existingServer.headers === "object" && !Array.isArray(existingServer.headers)
     ? existingServer.headers
     : {};
+  const preservedHeaders = Object.fromEntries(
+    Object.entries(existingHeaders).filter(([key]) => key.toLowerCase() !== "authorization"),
+  );
   return {
     ...existingServer,
     transport: "streamable-http",
     url: resolveMcpEndpoint(endpoint),
     headers: {
-      ...existingHeaders,
+      ...preservedHeaders,
       Authorization: `Bearer ${apiKey}`,
     },
   };
