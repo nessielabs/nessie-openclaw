@@ -21,8 +21,6 @@ package.json
   ClawHub/package metadata.
 scripts/validate.sh
   Static package validation.
-docs/openclaw-setup.md
-  Agent-facing setup prompt for nessielabs.com/openclaw-setup.
 ```
 
 ## Install
@@ -49,9 +47,6 @@ and bundled skill instructions are loaded.
 The recommended setup path mirrors Mem0's OpenClaw setup style: paste an agent
 prompt into OpenClaw, let the agent install the plugin, then verify the user's
 Nessie account by email OTP.
-
-The setup prompt is in [`docs/openclaw-setup.md`](docs/openclaw-setup.md). It
-will also be published at `https://nessielabs.com/openclaw-setup`.
 
 The prompt drives these commands:
 
