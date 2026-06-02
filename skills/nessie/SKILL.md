@@ -22,7 +22,8 @@ saved context, notes, AI conversations, relationships, or anything they may
 have discussed or researched before.
 
 Nessie is available through native OpenClaw tools registered by the
-`nessie-openclaw` plugin. Prefer these tools over shell commands; this plugin
+`nessie-openclaw` plugin. Those tools call Nessie's hosted MCP server with the
+user's Nessie API key. Prefer these tools over shell commands; this plugin
 intentionally does not require a local Nessie app or copied scripts.
 
 ## First Step
@@ -48,12 +49,20 @@ specific follow-up, continue with the normal search, read, and answer loop.
 
 Use the Nessie tools exposed by the native plugin:
 
-- check-in: load profile and source overview context.
-- list: list source worlds or children under a source node.
+- check-in: load profile sections and recent Nessie activity.
+- team list: list readable teams and team-shared resources.
+- integration list: list readable integration roots and team-shared roots.
+- list documents: list recent contexts, transcripts, or all documents.
+- list sources: list source worlds or children under a source node.
 - search: search contexts, transcripts, notes, and other sources.
 - read: read a source document or node in full.
+- resume: resume or take over a prior AI session.
+- who am I: read generated profile sections.
+- folders: list folders or inspect a folder.
 - create context: save a new reusable context.
 - edit context: update an existing context by exact replacement.
+- rename, move, or delete context: organize or remove context documents.
+- create, rename, or delete folder: organize contexts.
 
 ## Search Strategy
 
@@ -61,6 +70,10 @@ For knowledge questions, search contexts first for orientation, then read the
 best matching source in full. Search transcripts, notes, and source graphs when
 no context exists, when the context may be stale, or when primary-source detail
 matters.
+
+For team-shared work, use team list or integration list before searching. For
+session handoff requests such as "resume this session", use the resume tool
+before normal search.
 
 Run multiple searches when the first query is too narrow. Use names, companies,
 project names, related people, exact phrases, and likely synonyms. Do not stop
