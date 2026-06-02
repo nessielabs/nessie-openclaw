@@ -25,8 +25,8 @@ if missing:
     raise SystemExit(f"Missing required files: {', '.join(missing)}")
 
 package = json.loads((root / "package.json").read_text(encoding="utf-8"))
-if package.get("name") != "nessie-openclaw":
-    raise SystemExit("package.json name must be nessie-openclaw")
+if package.get("name") != "@nessielabs/nessie-openclaw":
+    raise SystemExit("package.json name must be @nessielabs/nessie-openclaw")
 if package.get("license") != "MIT-0":
     raise SystemExit("package.json license must be MIT-0")
 
@@ -52,6 +52,9 @@ skill = (root / "skills/nessie/SKILL.md").read_text(encoding="utf-8")
 for needle in ["check-in", "search", "read", "NESSIE_API_KEY"]:
     if needle not in skill:
         raise SystemExit(f"skills/nessie/SKILL.md must mention {needle}")
+for needle in ["requires:", "primaryEnv: NESSIE_API_KEY", "envVars:"]:
+    if needle not in skill:
+        raise SystemExit(f"skills/nessie/SKILL.md must declare {needle}")
 
 readme = (root / "README.md").read_text(encoding="utf-8")
 for needle in ["openclaw plugins install", "NESSIE_API_KEY", "https://mcp.nessielabs.com/mcp"]:

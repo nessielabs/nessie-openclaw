@@ -1,5 +1,5 @@
 {
-  "name": "nessie-openclaw",
+  "name": "@nessielabs/nessie-openclaw",
   "version": "0.1.0",
   "description": "OpenClaw plugin bundle for Nessie context over hosted MCP.",
   "license": "MIT-0",
