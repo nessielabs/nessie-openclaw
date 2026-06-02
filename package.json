@@ -2,7 +2,7 @@
   "name": "@nessielabs/nessie-openclaw",
   "version": "0.1.0",
   "type": "module",
-  "description": "Native OpenClaw plugin for Nessie context.",
+  "description": "OpenClaw setup helper and skill guidance for hosted Nessie MCP.",
   "license": "MIT-0",
   "homepage": "https://nessielabs.com",
   "repository": {
@@ -21,8 +21,7 @@
     "validate": "bash scripts/validate.sh"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.29.0",
-    "@sinclair/typebox": "0.34.47"
+    "@modelcontextprotocol/sdk": "^1.29.0"
   },
   "openclaw": {
     "extensions": [
