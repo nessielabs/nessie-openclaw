@@ -11,7 +11,8 @@
       {
         "id": "nessie",
         "authMethods": [
-          "api-key"
+          "api-key",
+          "otp"
         ],
         "envVars": [
           "NESSIE_API_KEY"

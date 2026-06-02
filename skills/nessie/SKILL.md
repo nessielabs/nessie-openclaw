@@ -41,20 +41,15 @@ specific follow-up, continue with the normal search, read, and answer loop.
 
 Use the Nessie tools exposed by OpenClaw's MCP integration:
 
-- check-in: load profile sections and recent Nessie activity.
-- team list: list readable teams and team-shared resources.
-- integration list: list readable integration roots and team-shared roots.
-- list documents: list recent contexts, transcripts, or all documents.
-- list sources: list source worlds or children under a source node.
-- search: search contexts, transcripts, notes, and other sources.
-- read: read a source document or node in full.
-- resume: resume or take over a prior AI session.
-- who am I: read generated profile sections.
-- folders: list folders or inspect a folder.
-- create context: save a new reusable context.
-- edit context: update an existing context by exact replacement.
-- rename, move, or delete context: organize or remove context documents.
-- create, rename, or delete folder: organize contexts.
+- check-in/profile tools for session-start context and user background.
+- list/browse tools for teams, integrations, folders, documents, and source
+  graphs.
+- search tools for finding relevant contexts, transcripts, notes, and other
+  sources.
+- read/resume tools for opening full documents, source nodes, or prior AI
+  sessions before making strong claims.
+- write/organize tools for saving durable context or organizing context
+  documents when the user asks.
 
 ## Search Strategy
 
