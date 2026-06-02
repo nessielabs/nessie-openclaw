@@ -3,8 +3,6 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-bash -n "$0"
-
 python3 - "$REPO_ROOT" <<'PY'
 import json
 import pathlib
@@ -38,78 +36,42 @@ if not openclaw.get("compat", {}).get("pluginApi"):
 manifest = json.loads((root / "openclaw.plugin.json").read_text(encoding="utf-8"))
 if manifest.get("id") != "nessie-openclaw":
     raise SystemExit("openclaw.plugin.json id must be nessie-openclaw")
-if "nessie" not in manifest.get("providers", []):
-    raise SystemExit("openclaw.plugin.json providers must include nessie")
 if manifest.get("skills") != ["skills/nessie"]:
     raise SystemExit("openclaw.plugin.json must load skills/nessie")
 if "NESSIE_API_KEY" not in json.dumps(manifest):
     raise SystemExit("openclaw.plugin.json must declare NESSIE_API_KEY setup metadata")
-auth_choices = manifest.get("providerAuthChoices", [])
-if not any(choice.get("provider") == "nessie" and choice.get("method") == "api-key" and choice.get("choiceId") == "nessie-api-key" for choice in auth_choices):
-    raise SystemExit("openclaw.plugin.json must declare the nessie-api-key provider auth choice")
-expected_tools = [
-    "nessie_team_list",
-    "nessie_integration_list",
-    "nessie_list",
-    "nessie_ls",
-    "nessie_search",
-    "nessie_read",
-    "nessie_resume",
-    "nessie_who_am_i",
-    "nessie_check_in",
-    "nessie_folders",
-    "nessie_create_context",
-    "nessie_edit_context",
-    "nessie_rename_context",
-    "nessie_move_context",
-    "nessie_delete_context",
-    "nessie_create_folder",
-    "nessie_rename_folder",
-    "nessie_delete_folder",
-]
-tools = manifest.get("contracts", {}).get("tools", [])
-for tool in expected_tools:
-    if tool not in tools:
-        raise SystemExit(f"openclaw.plugin.json contracts.tools must include {tool}")
-    metadata = manifest.get("toolMetadata", {}).get(tool, {})
-    if "nessie" not in json.dumps(metadata) or "apiKey" not in json.dumps(metadata):
-        raise SystemExit(f"openclaw.plugin.json toolMetadata must declare Nessie API-key auth for {tool}")
+if "contracts" in manifest or "toolMetadata" in manifest:
+    raise SystemExit("openclaw.plugin.json must not mirror hosted MCP tool contracts")
 
 runtime = (root / "index.js").read_text(encoding="utf-8")
 for needle in [
-    "registerTool",
     "registerCli",
     "openclaw nessie init",
+    "mcp",
+    "servers",
+    "streamable-http",
     "/agent/openclaw/otp/start",
     "/agent/openclaw/otp/verify",
     "StreamableHTTPClientTransport",
-    "client.callTool",
-    "registerProvider",
-    "resolveApiKeyForProvider",
+    "client.listTools",
     "https://mcp.nessielabs.com/mcp",
     "NESSIE_API_KEY",
 ]:
     if needle not in runtime:
         raise SystemExit(f"index.js must mention {needle}")
-for tool in expected_tools:
-    if tool not in runtime:
-        raise SystemExit(f"index.js must register {tool}")
+for forbidden in ["registerTool", "client.callTool", "toolDefinitions"]:
+    if forbidden in runtime:
+        raise SystemExit(f"index.js must not mirror MCP tools via {forbidden}")
 
 skill = (root / "skills/nessie/SKILL.md").read_text(encoding="utf-8")
-for needle in ["check-in", "search", "read", "NESSIE_API_KEY"]:
+for needle in ["check-in", "search", "read", "hosted Nessie MCP server"]:
     if needle not in skill:
         raise SystemExit(f"skills/nessie/SKILL.md must mention {needle}")
-for needle in ["requires:", "primaryEnv: NESSIE_API_KEY", "envVars:"]:
-    if needle not in skill:
-        raise SystemExit(f"skills/nessie/SKILL.md must declare {needle}")
 
 readme = (root / "README.md").read_text(encoding="utf-8")
-for needle in ["openclaw plugins install", "openclaw nessie init", "openclaw nessie status", "openclaw models auth login --provider nessie", "NESSIE_API_KEY", "https://mcp.nessielabs.com/mcp"]:
+for needle in ["openclaw plugins install", "openclaw nessie init", "openclaw nessie status", "mcp.servers.nessie", "NESSIE_API_KEY", "https://mcp.nessielabs.com/mcp"]:
     if needle not in readme:
         raise SystemExit(f"README.md must mention {needle}")
-for tool in expected_tools:
-    if tool not in readme:
-        raise SystemExit(f"README.md must mention {tool}")
 PY
 
 echo "Nessie OpenClaw package validation passed."
