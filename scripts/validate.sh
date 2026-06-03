@@ -70,7 +70,15 @@ for forbidden in ["registerTool", "client.callTool", "toolDefinitions"]:
         raise SystemExit(f"index.js must not mirror MCP tools via {forbidden}")
 
 skill = (root / "skills/nessie/SKILL.md").read_text(encoding="utf-8")
-for needle in ["check-in", "search", "read", "hosted Nessie MCP server"]:
+for needle in [
+    "check-in",
+    "search",
+    "read",
+    "hosted Nessie MCP server",
+    "nessie_who_am_i",
+    "Sparse profile data does not mean sparse raw data",
+    "Do not use team-shared roots as the default for first-person questions",
+]:
     if needle not in skill:
         raise SystemExit(f"skills/nessie/SKILL.md must mention {needle}")
 
