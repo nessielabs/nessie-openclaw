@@ -2,6 +2,7 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 
 const PLUGIN_ID = "nessie-openclaw";
+const PLUGIN_VERSION = "0.1.1";
 const MCP_SERVER_NAME = "nessie";
 const DEFAULT_MCP_ENDPOINT = "https://mcp.nessielabs.com/mcp";
 const DEFAULT_SETUP_BASE_URL = "https://notes.nessielabs.com";
@@ -202,7 +203,7 @@ function printResult(opts, result) {
 async function listHostedMcpTools({ endpoint, apiKey }) {
   return withTimeout(async (signal) => {
     const client = new Client(
-      { name: PLUGIN_ID, version: "0.1.1" },
+      { name: PLUGIN_ID, version: PLUGIN_VERSION },
       { capabilities: {} },
     );
     const transport = new StreamableHTTPClientTransport(new URL(endpoint), {
