@@ -8,21 +8,6 @@ for Nessie's hosted MCP server. Setup writes `mcp.servers.nessie` into
 OpenClaw config so OpenClaw's MCP client can discover the hosted Nessie tools
 directly from `https://mcp.nessielabs.com/mcp`.
 
-## What This Package Contains
-
-```text
-openclaw.plugin.json
-  Native plugin manifest, setup hints, and skill roots.
-index.js
-  Native OpenClaw CLI setup commands for Nessie.
-skills/nessie/
-  Agent instructions for when and how to use Nessie context.
-package.json
-  ClawHub/package metadata.
-scripts/validate.sh
-  Static package validation.
-```
-
 ## Install
 
 Once published to ClawHub:
@@ -42,30 +27,20 @@ openclaw plugins enable nessie-openclaw
 Restart the OpenClaw gateway/session after installation so the setup CLI and
 bundled skill instructions are loaded.
 
-## Publishing
-
-ClawHub publishing is automated by `.github/workflows/publish-clawhub.yml`.
-Configure the repository secret `CLAWHUB_TOKEN`, then publish a release by
-pushing a version tag that matches the package version:
-
-```bash
-git tag v0.1.2
-git push origin v0.1.2
-```
-
-The workflow validates the package, dry-runs the tarball, authenticates with
-ClawHub, and publishes `@nessielabs/nessie-openclaw`.
-
 ## OpenClaw Chat Setup
 
-The recommended setup path mirrors Mem0's OpenClaw setup style: paste an agent
-prompt into OpenClaw, let the agent install the plugin, then verify the user's
-Nessie account by email OTP.
+After installing the plugin, connect OpenClaw to your Nessie account with an
+email verification code.
 
-The prompt drives these commands:
+Ask OpenClaw to run:
 
 ```bash
 openclaw nessie init --email user@example.com
+```
+
+Check your email for the 6-digit Nessie code, then ask OpenClaw to run:
+
+```bash
 openclaw nessie init --email user@example.com --code 123456
 openclaw nessie status
 ```
@@ -74,11 +49,6 @@ openclaw nessie status
 --code` exchanges the verified code for a Nessie agent API key and writes a
 root MCP server entry to the OpenClaw config file with owner-only file
 permissions.
-
-The OTP exchange uses the hosted Nessie Go setup API at `https://nessie-notes-go-843813578359.us-west1.run.app` and expects:
-
-- `POST /auth/otp/start`
-- `POST /auth/otp/verify`
 
 ## Manual Authentication
 
@@ -93,45 +63,9 @@ Both setup paths store the bearer key in the local OpenClaw config file in
 plaintext with `0600` permissions so OpenClaw can use the hosted MCP server
 without extra shell setup.
 
-The setup command writes this shape to `openclaw.json`:
-
-```json
-{
-  "mcp": {
-    "servers": {
-      "nessie": {
-        "transport": "streamable-http",
-        "url": "https://mcp.nessielabs.com/mcp",
-        "headers": {
-          "Authorization": "Bearer sk_nes_v1_..."
-        }
-      }
-    }
-  },
-  "plugins": {
-    "entries": {
-      "nessie-openclaw": {
-        "enabled": true,
-        "config": {
-          "endpoint": "https://mcp.nessielabs.com/mcp"
-        }
-      }
-    }
-  }
-}
-```
-
-For development and CI, you can avoid inline key storage by configuring
-`mcp.servers.nessie` manually with an environment reference such as
-`Bearer ${NESSIE_API_KEY}`.
-
 The Nessie backend remains authoritative for access control. The API key maps
 to a Nessie user server-side and each MCP request is still checked against the
 user's Pro/trial entitlement.
-
-The setup API currently uses the raw Cloud Run service URL. The planned stable
-domain is `https://api.nessielabs.com`; keep the raw URL until that domain is
-routed to `nessie-notes-go`.
 
 ## Agent Behavior
 
@@ -148,17 +82,7 @@ This package does not duplicate or reimplement Nessie's MCP tool schemas.
 OpenClaw discovers the tool names, descriptions, and parameters from the hosted
 MCP server after setup.
 
-## Publishing
-
-ClawHub publishes plugin packages from a local folder or GitHub source:
-
-```bash
-clawhub package publish nessielabs/nessie-openclaw --dry-run
-clawhub package publish nessielabs/nessie-openclaw
-```
-
-ClawHub/OpenClaw plugin installs use package update records, so future releases
-can be picked up with:
+Future releases can be picked up with:
 
 ```bash
 openclaw plugins update @nessielabs/nessie-openclaw
