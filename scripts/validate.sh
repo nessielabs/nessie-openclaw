@@ -60,7 +60,7 @@ for needle in [
     "client.listTools",
     "Nessie setup request timed out.",
     "https://mcp.nessielabs.com/mcp",
-    "https://notes.nessielabs.com",
+    "https://nessie-notes-go-843813578359.us-west1.run.app",
     "NESSIE_API_KEY",
 ]:
     if needle not in runtime:
