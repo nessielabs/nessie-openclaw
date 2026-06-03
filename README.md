@@ -61,10 +61,10 @@ openclaw nessie status
 root MCP server entry to the OpenClaw config file with owner-only file
 permissions.
 
-The OTP exchange expects the hosted Nessie setup API to expose:
+The OTP exchange uses the hosted Nessie Go setup API at `https://notes.nessielabs.com` and expects:
 
-- `POST /agent/openclaw/otp/start`
-- `POST /agent/openclaw/otp/verify`
+- `POST /auth/otp/start`
+- `POST /auth/otp/verify`
 
 ## Manual Authentication
 
