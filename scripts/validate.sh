@@ -6,6 +6,7 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 python3 - "$REPO_ROOT" <<'PY'
 import json
 import pathlib
+import re
 import sys
 
 root = pathlib.Path(sys.argv[1])
@@ -27,6 +28,9 @@ if package.get("name") != "@nessielabs/nessie-openclaw":
     raise SystemExit("package.json name must be @nessielabs/nessie-openclaw")
 if package.get("license") != "MIT-0":
     raise SystemExit("package.json license must be MIT-0")
+package_version = package.get("version")
+if not package_version:
+    raise SystemExit("package.json must declare version")
 openclaw = package.get("openclaw", {})
 if openclaw.get("extensions") != ["./index.js"]:
     raise SystemExit("package.json must declare openclaw.extensions ./index.js")
@@ -36,6 +40,8 @@ if not openclaw.get("compat", {}).get("pluginApi"):
 manifest = json.loads((root / "openclaw.plugin.json").read_text(encoding="utf-8"))
 if manifest.get("id") != "nessie-openclaw":
     raise SystemExit("openclaw.plugin.json id must be nessie-openclaw")
+if manifest.get("version") != package_version:
+    raise SystemExit("openclaw.plugin.json version must match package.json version")
 if manifest.get("skills") != ["skills/nessie"]:
     raise SystemExit("openclaw.plugin.json must load skills/nessie")
 if "NESSIE_API_KEY" not in json.dumps(manifest):
@@ -48,6 +54,11 @@ if "contracts" in manifest or "toolMetadata" in manifest:
     raise SystemExit("openclaw.plugin.json must not mirror hosted MCP tool contracts")
 
 runtime = (root / "index.js").read_text(encoding="utf-8")
+runtime_version = re.search(r'const\s+PLUGIN_VERSION\s*=\s*"([^"]+)"', runtime)
+if not runtime_version:
+    raise SystemExit("index.js must declare PLUGIN_VERSION")
+if runtime_version.group(1) != package_version:
+    raise SystemExit("index.js PLUGIN_VERSION must match package.json version")
 for needle in [
     "registerCli",
     "openclaw nessie init",
@@ -70,6 +81,11 @@ for forbidden in ["registerTool", "client.callTool", "toolDefinitions"]:
         raise SystemExit(f"index.js must not mirror MCP tools via {forbidden}")
 
 skill = (root / "skills/nessie/SKILL.md").read_text(encoding="utf-8")
+skill_version = re.search(r"^version:\s*(\S+)\s*$", skill, re.MULTILINE)
+if not skill_version:
+    raise SystemExit("skills/nessie/SKILL.md must declare version frontmatter")
+if skill_version.group(1) != package_version:
+    raise SystemExit("skills/nessie/SKILL.md version must match package.json version")
 for needle in [
     "check-in",
     "search",
