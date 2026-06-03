@@ -42,6 +42,20 @@ openclaw plugins enable nessie-openclaw
 Restart the OpenClaw gateway/session after installation so the setup CLI and
 bundled skill instructions are loaded.
 
+## Publishing
+
+ClawHub publishing is automated by `.github/workflows/publish-clawhub.yml`.
+Configure the repository secret `CLAWHUB_TOKEN`, then publish a release by
+pushing a version tag that matches the package version:
+
+```bash
+git tag v0.1.2
+git push origin v0.1.2
+```
+
+The workflow validates the package, dry-runs the tarball, authenticates with
+ClawHub, and publishes `@nessielabs/nessie-openclaw`.
+
 ## OpenClaw Chat Setup
 
 The recommended setup path mirrors Mem0's OpenClaw setup style: paste an agent
@@ -61,7 +75,7 @@ openclaw nessie status
 root MCP server entry to the OpenClaw config file with owner-only file
 permissions.
 
-The OTP exchange uses the hosted Nessie Go setup API at `https://notes.nessielabs.com` and expects:
+The OTP exchange uses the hosted Nessie Go setup API at `https://nessie-notes-go-843813578359.us-west1.run.app` and expects:
 
 - `POST /auth/otp/start`
 - `POST /auth/otp/verify`
@@ -114,6 +128,10 @@ For development and CI, you can avoid inline key storage by configuring
 The Nessie backend remains authoritative for access control. The API key maps
 to a Nessie user server-side and each MCP request is still checked against the
 user's Pro/trial entitlement.
+
+The setup API currently uses the raw Cloud Run service URL. The planned stable
+domain is `https://api.nessielabs.com`; keep the raw URL until that domain is
+routed to `nessie-notes-go`.
 
 ## Agent Behavior
 
