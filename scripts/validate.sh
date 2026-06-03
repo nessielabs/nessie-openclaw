@@ -75,7 +75,7 @@ for needle in ["check-in", "search", "read", "hosted Nessie MCP server"]:
         raise SystemExit(f"skills/nessie/SKILL.md must mention {needle}")
 
 readme = (root / "README.md").read_text(encoding="utf-8")
-for needle in ["openclaw plugins install", "openclaw nessie init", "openclaw nessie status", "mcp.servers.nessie", "NESSIE_API_KEY", "https://mcp.nessielabs.com/mcp"]:
+for needle in ["openclaw plugins install", "openclaw nessie init", "openclaw nessie status", "hosted MCP server", "https://mcp.nessielabs.com/mcp"]:
     if needle not in readme:
         raise SystemExit(f"README.md must mention {needle}")
 PY
