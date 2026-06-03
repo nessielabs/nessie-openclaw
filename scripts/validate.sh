@@ -54,12 +54,13 @@ for needle in [
     "mcp",
     "servers",
     "streamable-http",
-    "/agent/openclaw/otp/start",
-    "/agent/openclaw/otp/verify",
+    "/auth/otp/start",
+    "/auth/otp/verify",
     "StreamableHTTPClientTransport",
     "client.listTools",
     "Nessie setup request timed out.",
     "https://mcp.nessielabs.com/mcp",
+    "https://notes.nessielabs.com",
     "NESSIE_API_KEY",
 ]:
     if needle not in runtime:

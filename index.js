@@ -4,7 +4,7 @@ import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/
 const PLUGIN_ID = "nessie-openclaw";
 const MCP_SERVER_NAME = "nessie";
 const DEFAULT_MCP_ENDPOINT = "https://mcp.nessielabs.com/mcp";
-const DEFAULT_SETUP_BASE_URL = "https://mcp.nessielabs.com";
+const DEFAULT_SETUP_BASE_URL = "https://notes.nessielabs.com";
 const REQUEST_TIMEOUT_MS = 20_000;
 
 function registerNessieCli(api) {
@@ -93,7 +93,7 @@ async function handleNessieInit(opts) {
     throw new Error("Nessie OTP codes must be 6 digits.");
   }
   if (!code) {
-    await postSetupJson(`${baseUrl}/agent/openclaw/otp/start`, {
+    await postSetupJson(`${baseUrl}/auth/otp/start`, {
       email,
       client: "openclaw",
     });
@@ -106,7 +106,7 @@ async function handleNessieInit(opts) {
     return;
   }
 
-  const response = await postSetupJson(`${baseUrl}/agent/openclaw/otp/verify`, {
+  const response = await postSetupJson(`${baseUrl}/auth/otp/verify`, {
     email,
     code,
     client: "openclaw",
@@ -202,7 +202,7 @@ function printResult(opts, result) {
 async function listHostedMcpTools({ endpoint, apiKey }) {
   return withTimeout(async (signal) => {
     const client = new Client(
-      { name: PLUGIN_ID, version: "0.1.0" },
+      { name: PLUGIN_ID, version: "0.1.1" },
       { capabilities: {} },
     );
     const transport = new StreamableHTTPClientTransport(new URL(endpoint), {
