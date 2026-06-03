@@ -1,7 +1,7 @@
 ---
 name: nessie
 description: Search and read the user's Nessie context library from OpenClaw through hosted MCP.
-version: 0.1.2
+version: 0.1.3
 metadata:
   openclaw:
     homepage: https://github.com/nessielabs/nessie-openclaw
@@ -71,6 +71,14 @@ The MCP check-in response exposes profile sections as source nodes:
 number of recent activity documents included in the check-in response. It is
 bounded by the requested `recentLimit`; it is not a count of all available
 Nessie documents.
+
+Use `nessie_who_am_i` first for questions about the authenticated user: "who am
+I", "what do you know about me", "what did I do", "what am I working on", "my
+recent work", preferences, projects, decisions, work history, or other personal
+memory. If `nessie_who_am_i` or `nessie_check_in` returns sparse profile data,
+continue by calling `nessie_ls` to find the user's personal transcript and note
+roots, then use `nessie_search` with `parentId` scoped to those roots or browse
+their recent children. Sparse profile data does not mean sparse raw data.
 
 ## Core Loop
 
@@ -157,6 +165,8 @@ root first, then use `nessie_search` with `parentId`, `kind`, `since`, and
 `until` filters. Use `kind` for a raw node kind such as `codex_chat` or
 `claude_code_chat` when the provider is known. Use `since` and `until` with ISO
 timestamps to narrow recent team-shared work before reading full matches.
+Do not use team-shared roots as the default for first-person questions; they
+are for named teammates or explicitly shared-team scope.
 
 ## Source Authority Hierarchy
 
@@ -183,6 +193,24 @@ sources are authoritative over contexts. Prefer transcripts for claims about
 what happened in conversations, and notes for claims about user-authored source
 material. For creation: ground new contexts in primary-source evidence, not
 only in other contexts.
+
+## Authenticated User and Personal Sources
+
+For first-person questions such as "what did I do", "what am I working on",
+"what did I decide", "who am I", "my recent work", or "what do you know about
+me", treat the authenticated user's own profile and personal source roots as
+the primary scope.
+
+Start with profile or check-in data for orientation when available. Profile
+data may be sparse or incomplete; do not stop there. If the profile does not
+answer the question, list the user's source roots and inspect their personal
+transcript or note roots. Browse or search within those personal roots before
+falling back to broad global search.
+
+Do not use team-shared roots as the default scope for first-person questions.
+Use team and team-shared roots when the user asks about a teammate by name,
+asks about shared team work, or explicitly asks to compare their work with
+someone else's.
 
 ## Query Interpretation
 
