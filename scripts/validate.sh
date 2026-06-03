@@ -94,7 +94,8 @@ for needle in [
     "nessie_who_am_i",
     "Sparse profile data does not mean sparse raw data",
     "Do not use team-shared roots as the default for first-person questions",
-    "convert that local window to explicit UTC",
+    "sinceDate",
+    "untilDate",
     "Do not treat UTC midnight as the boundary",
 ]:
     if needle not in skill:
