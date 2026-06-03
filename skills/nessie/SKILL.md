@@ -168,6 +168,20 @@ timestamps to narrow recent team-shared work before reading full matches.
 Do not use team-shared roots as the default for first-person questions; they
 are for named teammates or explicitly shared-team scope.
 
+## Time and Date Windows
+
+For relative date phrases such as "today", "yesterday", "this week", "last
+week", or "so far", use OpenClaw's user timezone or current date context to
+resolve the local window first. Then convert that local window to explicit UTC
+ISO timestamps before passing `since` and `until` to `nessie_search`.
+
+Do not treat UTC midnight as the boundary for user-local questions. The hosted
+Nessie MCP server returns UTC display timestamps and does not receive
+OpenClaw's timezone setting directly; OpenClaw has to do the local-to-UTC
+conversion before calling the MCP tools. If OpenClaw does not know the user's
+timezone and the boundary matters, ask the user or state the assumption before
+using a strict date filter.
+
 ## Source Authority Hierarchy
 
 Source types serve different purposes:
