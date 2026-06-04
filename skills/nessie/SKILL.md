@@ -181,8 +181,8 @@ programmatically before querying.
 
 Do not treat UTC midnight as the boundary for user-local questions. Exact ISO
 instants are also accepted through `since` and `until` when you already have
-them. If OpenClaw does not know the user's timezone and the boundary matters,
-ask the user or state the assumption before using a strict date filter.
+them. If OpenClaw does not expose both a reliable user timezone and current date
+context, ask the user; do not silently fall back to UTC.
 
 ## Source Authority Hierarchy
 
