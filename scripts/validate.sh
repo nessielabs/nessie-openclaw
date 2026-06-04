@@ -95,7 +95,8 @@ for needle in [
     "Sparse profile data does not mean sparse raw data",
     "Do not use team-shared roots as the default for first-person questions",
     "date-only bounds to `nessie_search` through `since` and `until`",
-    "timezone",
+    "plus `timezone` as an IANA timezone",
+    "local Monday-Sunday week",
     "Do not treat UTC midnight as the boundary",
 ]:
     if needle not in skill:

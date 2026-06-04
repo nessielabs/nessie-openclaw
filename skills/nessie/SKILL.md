@@ -179,6 +179,9 @@ date-only bounds to `nessie_search` through `since` and `until` as
 `America/Los_Angeles`. The hosted Nessie MCP server resolves those local dates
 programmatically before querying.
 
+Treat "this week" and "last week" as the user's local Monday-Sunday week unless
+the user gives a different convention.
+
 Do not treat UTC midnight as the boundary for user-local questions. Exact ISO
 instants are also accepted through `since` and `until` when you already have
 them. If OpenClaw does not expose both a reliable user timezone and current date
