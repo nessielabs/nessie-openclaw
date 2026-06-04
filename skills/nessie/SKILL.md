@@ -163,24 +163,26 @@ as `teamId`, `teamName`, `ownerUserId`, `ownerDisplayName`, `ownerEmail`,
 For questions about a teammate's recent work, identify the teammate's shared
 root first, then use `nessie_search` with `parentId`, `kind`, `since`, and
 `until` filters. Use `kind` for a raw node kind such as `codex_chat` or
-`claude_code_chat` when the provider is known. Use `since` and `until` with ISO
-timestamps to narrow recent team-shared work before reading full matches.
-Do not use team-shared roots as the default for first-person questions; they
-are for named teammates or explicitly shared-team scope.
+`claude_code_chat` when the provider is known. For relative date phrases, pass
+date-only `since` and `until` values plus `timezone`; see Time and Date Windows.
+Use exact ISO `since` and `until` only when you already have exact instants.
+Do not use team-shared roots as the default for first-person questions.
+Team-shared roots are for named teammates or explicitly shared-team scope.
 
 ## Time and Date Windows
 
 For relative date phrases such as "today", "yesterday", "this week", "last
-week", or "so far", use OpenClaw's user timezone or current date context. Pass
-date-only bounds to `nessie_search` as `sinceDate` and `untilDate` in
-`yyyy-mm-dd` format, plus `timezone` as an IANA timezone such as
+week", or "so far", use OpenClaw's user timezone or current date context when
+it is exposed, such as through `agents.defaults.userTimezone`. Pass
+date-only bounds to `nessie_search` through `since` and `until` as
+`yyyy-mm-dd` values, plus `timezone` as an IANA timezone such as
 `America/Los_Angeles`. The hosted Nessie MCP server resolves those local dates
 programmatically before querying.
 
-Do not treat UTC midnight as the boundary for user-local questions. Use `since`
-and `until` only when you already have exact ISO instants. If OpenClaw does not
-know the user's timezone and the boundary matters, ask the user or state the
-assumption before using a strict date filter.
+Do not treat UTC midnight as the boundary for user-local questions. Exact ISO
+instants are also accepted through `since` and `until` when you already have
+them. If OpenClaw does not know the user's timezone and the boundary matters,
+ask the user or state the assumption before using a strict date filter.
 
 ## Source Authority Hierarchy
 
