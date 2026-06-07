@@ -1,7 +1,7 @@
 ---
 name: nessie
 description: Search and read the user's Nessie context library from OpenClaw through hosted MCP.
-version: 0.1.4
+version: 0.1.5
 metadata:
   openclaw:
     homepage: https://github.com/nessielabs/nessie-openclaw
@@ -107,10 +107,17 @@ Use `nessie_ls` for source discovery and hierarchy traversal:
 - call with no `parentId` to list source groups, counts, and root nodes
 - pass `sourceType` as `all`, `context`, `transcript`, `profile`, or
   `obsidian` to scope the overview
+- leave `owner` omitted, or pass `current_user` / `me`, for the authenticated
+  user's own sources; pass `team` or an explicit `{ userId }` / `{ email }`
+  only for a teammate or explicit shared-team question. For named teammates,
+  prefer `nessie_team_list` or `nessie_integration_list`, then pass the member
+  `userId` / resource `ownerUserId` as `owner: { userId: "..." }`. `{ email }`
+  resolves only from existing team member email metadata.
 - pass `parentId` to list direct children of a folder-like node, such as an
   Obsidian vault or folder
 - use returned `id`, `kind`, `sourceType`, `path` or `sourceId`, child counts,
-  and affordances to decide whether to read, search, or traverse further
+  `sourceOwner`, and affordances to decide whether to read, search, or traverse
+  further
 
 Use source browsing before search when the user asks what is available, wants
 to inspect a vault or folder, or is unsure which source world contains the
@@ -129,6 +136,10 @@ hierarchy-scoped search, pass `parentId` after discovering the node id with
 `nessie_ls`. Use `literal: true` for exact phrase or substring checks. Literal
 mode matches the whole query string as a contiguous substring, so do not treat
 an unquoted natural language description as one exact phrase.
+
+`nessie_search`, `nessie_ls`, and `nessie_list` default to
+`owner: "current_user"`. Use `owner: "team"` for explicit team-wide discovery
+and explicit `{ userId }` or `{ email }` objects for teammate-owned sources.
 
 Do not default every discovery or knowledge request to `type: "context"`.
 Choose `type` from the user's intent: use `context` for synthesized
@@ -187,20 +198,63 @@ document ID and chunk index to continue reading from.
 
 ## Team and Shared Sources
 
-Use `nessie_team_list` and `nessie_integration_list` first for team-shared
-work. `nessie_team_list` returns readable teams and shared resources.
-`nessie_integration_list` returns team-shared roots with provenance fields such
-as `teamId`, `teamName`, `ownerUserId`, `ownerDisplayName`, `ownerEmail`,
-`status`, `platform`, and provider labels.
+Use `nessie_team_list` and `nessie_integration_list` first for team-shared work.
+This is the MCP equivalent of the CLI `nessie team list` /
+`nessie integration list --status team_remote` resolver path.
 
-For questions about a teammate's recent work, identify the teammate's shared
-root first, then use `nessie_search` with `parentId`, `kind`, `since`, and
-`until` filters. Use `kind` for a raw node kind such as `codex_chat` or
-`claude_code_chat` when the provider is known. For relative date phrases, pass
-date-only `since` and `until` values plus `timezone`; see Time and Date Windows.
-Use exact ISO `since` and `until` only when you already have exact instants.
+`nessie_team_list` returns readable teams, members, and shared resources.
+`nessie_integration_list` returns connected and team-shared roots with
+provenance fields such as `teamId`, `teamName`, `ownerUserId`,
+`ownerDisplayName`, `ownerEmail`, `status`, `platform`, and provider labels.
+
+Follow this resolver workflow for teammate questions:
+
 Do not use team-shared roots as the default for first-person questions.
-Team-shared roots are for named teammates or explicitly shared-team scope.
+
+1. Decide whether the user is asking about themself, a named teammate, or a
+   whole shared team. Do not use team-shared roots as the default for
+   first-person questions; first-person requests stay in the authenticated
+   user's scope.
+2. For a named teammate, call `nessie_team_list` or `nessie_integration_list`
+   before searching. Match the teammate by team member name/email and by shared
+   resource metadata.
+3. Resolve the teammate owner ID from the member `userId` returned by
+   `nessie_team_list` or the resource `ownerUserId` returned by
+   `nessie_integration_list`. That resolved ID is the owner selector value.
+4. Choose the shared integration root or source root that matches the request.
+   Use its root `id` as `parentId` when the user names a provider, repository,
+   vault, project, or other source. If the request is broader, you may search
+   all readable sources for that owner without `parentId`.
+5. Search or browse with `owner: { userId: "..." }`. Add `parentId` for the
+   selected root, `kind` for raw node kinds such as `claude_code_chat` or
+   `codex_chat`, and `since` / `until` / `timezone` for time windows.
+6. Read the matching sources with `nessie_read` before attributing work or
+   answering. Search and list results are routing breadcrumbs, not final
+   evidence.
+
+For questions like "what did Tiger do yesterday?", start with
+`nessie_team_list` or `nessie_integration_list`, identify Tiger's shared
+integration root and `ownerUserId`, then call `nessie_search` with
+`owner: { userId: "<tiger-owner-user-id>" }`, the selected `parentId` when one
+is available, and date-only `since` / `until` plus `timezone`. `nessie_ls` can
+be used with the same owner and `parentId` to browse recent children instead of
+searching when the request is navigational.
+
+Use `owner: { email: "..." }` only when that email appears in team member
+metadata; otherwise email selectors return a clear error instead of silently
+producing zero results. Do not pass raw owner strings such as `"tiger"` or
+objects shaped as `{ ownerUserId: "..." }`; MCP owner objects use `{ userId }`
+or `{ email }`.
+
+Returned descriptors may include both `sourceOwner` and integration/provider
+metadata. Use `sourceOwner` as the only ownership and scoping signal. It tells
+you whose source/transcript was queried, not who semantically performed every
+task mentioned inside the transcript. Read the content before assigning work to
+a person. Treat integration fields such as account names, provider names,
+device labels, and team/provider labels as provenance only.
+
+If a scoped team search is too broad or sparse, narrow with a smaller time
+window, a more specific `parentId`, or a narrower `kind`, then retry.
 
 ## Time and Date Windows
 
@@ -265,6 +319,36 @@ Do not use team-shared roots as the default scope for first-person questions.
 Use team and team-shared roots when the user asks about a teammate by name,
 asks about shared team work, or explicitly asks to compare their work with
 someone else's.
+
+When a Nessie tool exposes an `owner` selector, omit it or use `current_user` /
+`me` for first-person questions. Pass `owner: { userId: "..." }`,
+`owner: { email: "..." }`, or `owner: "team"` only for teammate-owned sources
+or explicit shared-team scope. Never infer current-user ownership from provider
+account email, integration display name, or machine label; use returned
+`sourceOwner` metadata instead.
+
+## When to Use
+
+1. Start of session: use `nessie_who_am_i` or `nessie_check_in` for
+   orientation. If profile data is sparse, inspect personal source roots and
+   recent transcripts before concluding Nessie lacks information.
+2. Prior work: use contexts for orientation when the request is a knowledge
+   question, but use source browsing or primary-source search when the work
+   likely lives in files, memos, vaults, source documents, or a specific
+   conversation.
+3. "What do I know about X": search contexts for the compiled picture, then
+   read transcripts or notes for verification, freshness, or deeper detail.
+4. Past conversations: search transcripts, then read the relevant transcript
+   content.
+5. Available sources or browsing: use `nessie_ls` before searching.
+6. Teammate or shared-team work: resolve the owner first with
+   `nessie_team_list` or `nessie_integration_list`, then search or list with
+   the resolved `owner`.
+7. Reusable synthesis: follow the manual research workflow and create a context
+   only when the user asks for one or the exchange produced durable knowledge
+   worth preserving.
+8. Profile changes: use profile update tools when durable personal facts
+   changed; do not edit profile section nodes as normal contexts.
 
 ## Query Interpretation
 
