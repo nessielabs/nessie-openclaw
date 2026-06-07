@@ -85,8 +85,10 @@ their recent children. Sparse profile data does not mean sparse raw data.
 On every Nessie invocation, follow this loop:
 
 1. Read first. Before responding, search Nessie for relevant context. Use the
-   two-step search pattern: contexts first, then transcripts or notes if
-   needed. Read matching documents in full.
+   source order implied by the user's intent: browse source hierarchies for
+   discovery, read contexts for synthesized orientation, and read primary
+   sources for verification or exact grounding. Read matching documents in
+   full.
 2. Respond with Nessie context. Use what you found to inform the answer.
    Surface relationships, prior discussions, and cross-references the user may
    have forgotten.
@@ -128,19 +130,44 @@ hierarchy-scoped search, pass `parentId` after discovering the node id with
 mode matches the whole query string as a contiguous substring, so do not treat
 an unquoted natural language description as one exact phrase.
 
-For knowledge questions, search contexts first, then primary sources:
+Choose the source order from the user's intent, not from a global ranking:
 
-1. Search contexts first for existing synthesized knowledge. If a context
-   matches, read it in full. This often gives the complete picture without
-   needing to search transcripts.
-2. Search primary sources only if no context exists, the context is stale, or
-   primary-source verification or deeper detail is needed. Search across all
-   primary source types, including Obsidian notes, not just transcripts.
+- Discovery, navigation, and "what sources exist" requests should start with
+  `nessie_ls` to list source roots and traverse hierarchies.
+- Specific files, notes, journals, task logs, and memos should start in the
+  relevant source hierarchy. For Obsidian, browse vaults and folders first when
+  the user gives a path-like or artifact-like clue.
+- Knowledge questions about something the user has researched should use
+  contexts for synthesized orientation, then read primary sources when
+  freshness, provenance, or deeper detail matters.
+- Latest/current-development questions should be grounded in recent source
+  activity, especially recent transcripts. Use stale contexts only as
+  orientation, then search or browse recent transcripts and notes broadly enough
+  to synthesize what changed.
+- Verification and exact grounding should read primary sources. Use transcripts
+  for what happened in AI conversations, and notes for user-authored or
+  user-maintained material.
+- Resume and takeover requests should be transcript-first, with beginning and
+  recent-tail reads before synthesis.
+
+Context search is an orientation tool, not the universal first step. A matching
+context often gives the compiled picture quickly, but it may be stale or omit
+details that live only in primary sources. Obsidian notes and conversation
+transcripts are not fallback sources when the user's request clearly points to
+them.
 
 For topics with multiple relevant contexts, one context is often not enough.
 Read the obviously relevant context results, compare their recency metadata,
 and check recent transcripts before making a strong claim. A stale context is
 orientation, not the final answer.
+
+For questions like "latest developments on X", "what changed recently", "where
+are we now", or "what is the current state", do not stop at existing contexts.
+Start with recent source discovery and recent transcript search for the
+relevant project, product, people, repository, issue, or distinctive terms. Read
+several recent matching conversations or notes, including relevant tail windows
+for long transcripts, and synthesize across them. Existing contexts can explain
+the background, but recent primary sources establish the latest state.
 
 Run multiple searches with related terms when the first query is too narrow:
 names, companies, product names, distinctive wording, likely synonyms, and
@@ -192,9 +219,10 @@ context, ask the user; do not silently fall back to UTC.
 Source types serve different purposes:
 
 - Contexts are compiled knowledge: synthesized, structured summaries of what
-  the user knows about a topic. Always check contexts first for orientation.
-  They may be stale, so verify freshness by checking the context date against
-  recent activity.
+  the user knows about a topic. Use them for orientation and reusable summaries
+  when the user asks a knowledge question. They may be stale, so verify
+  freshness by checking the context date against recent activity and primary
+  sources when the answer depends on current or exact details.
 - Conversation transcripts are ground truth for the user's actual AI
   conversations: words, decisions, and thinking as they happened. Use
   transcripts to verify context claims, fill in details, or when no context
@@ -207,11 +235,12 @@ Source types serve different purposes:
   the profile for identity, connections, project info, and other recurring
   personal context.
 
-For discovery: contexts first, then transcripts. For verification: primary
-sources are authoritative over contexts. Prefer transcripts for claims about
-what happened in conversations, and notes for claims about user-authored source
-material. For creation: ground new contexts in primary-source evidence, not
-only in other contexts.
+For discovery: browse source roots and hierarchies first. For synthesized
+orientation: read relevant contexts. For verification: primary sources are
+authoritative over contexts. Prefer transcripts for claims about what happened
+in conversations, and notes for claims about user-authored source material. For
+creation: ground new contexts in primary-source evidence, not only in other
+contexts.
 
 ## Authenticated User and Personal Sources
 
@@ -240,9 +269,14 @@ Before searching, infer the likely purpose and scope:
 - Topics with several plausible sources need multiple relevant contexts,
   recency comparison, and recent transcript checks before answering.
 - Queries with temporal signals such as "recent", "lately", or "this week"
-  should prefer recent conversations, then read them.
+  should prefer recent conversations and notes, then read them. Existing
+  contexts are background only until checked against recent primary sources.
 - Current-state queries such as "what am I working on" should prefer recent
   content without excluding older foundational context.
+- Latest-development queries such as "latest developments on Nessie", "what
+  changed recently on X", or "where are we now" need a broad synthesis over
+  recent transcript/source activity. Search multiple related terms, read several
+  recent sources, and compare against any existing context before answering.
 - Open-ended exploration should start with a broad search and expand with more
   specific searches if results are thin.
 - Generation with an audience should infer purpose, audience, and tone before
@@ -329,11 +363,13 @@ Infer purpose, audience, and time scope. Decompose the topic into facets:
 Cast a wide net with multiple searches. A single search is almost never
 sufficient.
 
-- Search exact names or terms in contexts first for compiled knowledge.
-- Search exact names or terms in transcripts and notes when primary-source
-  verification is needed or no context exists.
 - List source groups or source children when the user asks what is available,
   references a vault or folder, or you need to understand a source hierarchy.
+- Search exact names or terms in contexts when compiled knowledge would help
+  orient the task.
+- Search exact names or terms in transcripts and notes when primary-source
+  verification is needed, no context exists, or the user asks about artifacts,
+  notes, files, conversations, task logs, journals, or other source material.
 - Search broader conceptual topics when you are unsure what exists.
 - Search related terms separately. If researching a person, also search their
   company, related people, and relevant events.
