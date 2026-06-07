@@ -207,20 +207,21 @@ This is the MCP equivalent of the CLI `nessie team list` /
 provenance fields such as `teamId`, `teamName`, `ownerUserId`,
 `ownerDisplayName`, `ownerEmail`, `status`, `platform`, and provider labels.
 
+Do not use team-shared roots as the default for first-person questions.
+Team-shared roots are for named teammates or explicitly shared-team scope.
+
 Follow this resolver workflow for teammate questions:
 
-Do not use team-shared roots as the default for first-person questions.
-
 1. Decide whether the user is asking about themself, a named teammate, or a
-   whole shared team. Do not use team-shared roots as the default for
-   first-person questions; first-person requests stay in the authenticated
-   user's scope.
+   whole shared team. First-person requests stay in the authenticated user's
+   scope.
 2. For a named teammate, call `nessie_team_list` or `nessie_integration_list`
    before searching. Match the teammate by team member name/email and by shared
    resource metadata.
 3. Resolve the teammate owner ID from the member `userId` returned by
    `nessie_team_list` or the resource `ownerUserId` returned by
-   `nessie_integration_list`. That resolved ID is the owner selector value.
+   `nessie_integration_list`. That resolved ID is the input owner selector;
+   returned `sourceOwner` metadata is what you read back to confirm scope.
 4. Choose the shared integration root or source root that matches the request.
    Use its root `id` as `parentId` when the user names a provider, repository,
    vault, project, or other source. If the request is broader, you may search
