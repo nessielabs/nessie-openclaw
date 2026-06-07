@@ -130,6 +130,12 @@ hierarchy-scoped search, pass `parentId` after discovering the node id with
 mode matches the whole query string as a contiguous substring, so do not treat
 an unquoted natural language description as one exact phrase.
 
+Do not default every discovery or knowledge request to `type: "context"`.
+Choose `type` from the user's intent: use `context` for synthesized
+orientation, `obsidian` for notes, vaults, files, memos, source docs, task
+logs, and journals, `transcript` for prior AI conversations and agent resume
+state, and `all` when several source types are plausible.
+
 Choose the source order from the user's intent, not from a global ranking:
 
 - Discovery, navigation, and "what sources exist" requests should start with
