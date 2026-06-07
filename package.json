@@ -1,6 +1,6 @@
 {
   "name": "@nessielabs/nessie-openclaw",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "type": "module",
   "description": "OpenClaw setup helper and skill guidance for hosted Nessie MCP.",
   "license": "MIT-0",
