@@ -1,7 +1,7 @@
 ---
 name: nessie
 description: Search and read the user's Nessie context library from OpenClaw through hosted MCP.
-version: 0.1.5
+version: 0.1.6
 metadata:
   openclaw:
     homepage: https://github.com/nessielabs/nessie-openclaw
@@ -228,7 +228,8 @@ Follow this resolver workflow for teammate questions:
    all readable sources for that owner without `parentId`.
 5. Search or browse with `owner: { userId: "..." }`. Add `parentId` for the
    selected root, `kind` for raw node kinds such as `claude_code_chat` or
-   `codex_chat`, and `since` / `until` / `timezone` for time windows.
+   `codex_chat`, and date-only `since` / `until` plus `timezone` for time
+   windows.
 6. Read the matching sources with `nessie_read` before attributing work or
    answering. Search and list results are routing breadcrumbs, not final
    evidence.
@@ -262,18 +263,19 @@ window, a more specific `parentId`, or a narrower `kind`, then retry.
 For relative date phrases such as "today", "yesterday", "this week", "last
 week", or "so far", use OpenClaw's user timezone or current date context when
 it is exposed, such as through `agents.defaults.userTimezone`. Pass
-date-only bounds to `nessie_search` through `since` and `until` as
-`yyyy-mm-dd` values, plus `timezone` as an IANA timezone such as
-`America/Los_Angeles`. The hosted Nessie MCP server resolves those local dates
-programmatically before querying.
+date-only bounds to `nessie_search`, `nessie_ls`, and `nessie_list` through
+`since` and `until` as `yyyy-mm-dd` values, plus `timezone` as an IANA timezone
+such as `America/Los_Angeles`. The hosted Nessie MCP server resolves those
+local dates programmatically before querying.
 
 Treat "this week" and "last week" as the user's local Monday-Sunday week unless
 the user gives a different convention.
 
 Do not treat UTC midnight as the boundary for user-local questions. Exact ISO
 instants are also accepted through `since` and `until` when you already have
-them. If OpenClaw does not expose both a reliable user timezone and current date
-context, ask the user; do not silently fall back to UTC.
+them. Date-only bounds require `timezone`. If OpenClaw does not expose both a
+reliable user timezone and current date context, ask the user; do not silently
+fall back to UTC.
 
 ## Source Authority Hierarchy
 

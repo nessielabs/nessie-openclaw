@@ -2,7 +2,7 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 
 const PLUGIN_ID = "nessie-openclaw";
-const PLUGIN_VERSION = "0.1.5";
+const PLUGIN_VERSION = "0.1.6";
 const MCP_SERVER_NAME = "nessie";
 const DEFAULT_MCP_ENDPOINT = "https://mcp.nessielabs.com/mcp";
 const DEFAULT_SETUP_BASE_URL = "https://nessie-notes-go-843813578359.us-west1.run.app";
