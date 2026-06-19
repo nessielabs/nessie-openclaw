@@ -86,6 +86,10 @@ if not skill_version:
     raise SystemExit("skills/nessie/SKILL.md must declare version frontmatter")
 if skill_version.group(1) != package_version:
     raise SystemExit("skills/nessie/SKILL.md version must match package.json version")
+# SKILL.md is generated from packages/nessie-agent-instructions (shared core +
+# MCP adapter + OpenClaw preamble/adapter) and synced into this repo. These
+# assertions check the generated skill still carries the key guidance, using the
+# canonical wording from the shared sources. Update them alongside that package.
 for needle in [
     "check-in",
     "search",
@@ -94,19 +98,18 @@ for needle in [
     "nessie_who_am_i",
     "Sparse profile data does not mean sparse raw data",
     "Do not use team-shared roots as the default for first-person questions",
-    "Follow this resolver workflow for teammate questions",
-    "nessie integration list --status team_remote",
+    "explicit `{ userId }` or `{ email }` objects",
+    "nessie_integration_list",
     "owner: { userId: \"...\" }",
-    "`sourceOwner` as the only ownership and scoping signal",
+    "`sourceOwner` as the sole authority",
     "Do not default every discovery or knowledge request to `type: \"context\"`",
     "Choose the source order from the user's intent",
     "Context search is an orientation tool",
     "latest developments",
-    "date-only bounds to `nessie_search`, `nessie_ls`, and `nessie_list`",
-    "plus `timezone` as an IANA timezone",
+    "narrow recent work before reading full matches",
+    "plus an IANA timezone",
     "Date-only bounds require `timezone`",
-    "local Monday-Sunday week",
-    "Do not treat UTC midnight as the boundary",
+    "treat UTC midnight as the default boundary",
 ]:
     if needle not in skill:
         raise SystemExit(f"skills/nessie/SKILL.md must mention {needle}")
