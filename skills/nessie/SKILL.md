@@ -1,7 +1,7 @@
 ---
 name: nessie
 description: Search and read the user's Nessie context library from OpenClaw through hosted MCP.
-version: 0.1.6
+version: 0.1.7
 metadata:
   openclaw:
     homepage: https://github.com/nessielabs/nessie-openclaw
@@ -13,9 +13,11 @@ Use Nessie when the user asks about their prior work, decisions, projects,
 saved context, notes, AI conversations, relationships, or anything they may
 have discussed or researched before.
 
-Nessie is the user's personal context layer. It gives agents access to saved
-contexts, generated profile sections, raw AI conversation transcripts, and
-synced source graphs such as Obsidian vaults. In OpenClaw, Nessie is available
+Nessie is the context layer for AI-native work — both the user's own work and
+their team's. It gives agents unified access to what the user (and, in team
+scope, their teammates) already know: saved contexts, generated profile
+sections, raw AI conversation transcripts, and synced source graphs such as
+Obsidian vaults. In OpenClaw, Nessie is available
 through the hosted Nessie MCP server configured by the `nessie-openclaw`
 plugin. OpenClaw discovers the available Nessie tools from that hosted MCP
 server.
@@ -195,6 +197,19 @@ If a search result or transcript chunk cuts off mid-sentence or mid-thought,
 paginate forward with the source document reader. Do not run another search,
 guess at the missing content, or report "I don't know" when you have the
 document ID and chunk index to continue reading from.
+
+A search hit drops you into the middle of a conversation, not its conclusion.
+Multi-message conversations build to their resolution at the end — the decision,
+the final answer, the "I already handled this", the corrected position that
+overturns an earlier one. When the user asks what was decided, what the
+conclusion was, who someone is, or what the current state of a thread is, do not
+answer from the single chunk a search returned. Use `nessie_read` with
+`tailLimit` (or page to the end) to read the end of that conversation, and skim
+its beginning for framing, before you synthesize or attribute. Reading only the
+opening or a middle chunk gives you the setup of a thread, not its outcome, and
+is a recurring source of wrong answers and misattributed quotes — the
+conversation's title and first messages also tell you whether the matched text
+is the user's own words or quoted, pasted, or translated material.
 
 ## Team and Shared Sources
 
@@ -485,6 +500,10 @@ For each relevant search result:
   exist.
 - If multiple contexts match the same entity or topic, read the relevant set;
   do not stop at the first context that confirms a plausible answer.
+- Conversations build over many exchanges, and the conclusion lands at the end.
+  Read through to the tail — not just the opening or the middle chunk a search
+  returned — so you capture the decision, correction, or outcome, not only the
+  setup.
 
 If you create a context based only on search snippets without reading full
 sources, the output will be thin and missing critical details. This is not
