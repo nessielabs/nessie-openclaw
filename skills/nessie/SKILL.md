@@ -203,9 +203,11 @@ Multi-message conversations build to their resolution at the end — the decisio
 the final answer, the "I already handled this", the corrected position that
 overturns an earlier one. When the user asks what was decided, what the
 conclusion was, who someone is, or what the current state of a thread is, do not
-answer from the single chunk a search returned. Use `nessie_read` with
-`tailLimit` (or page to the end) to read the end of that conversation, and skim
-its beginning for framing, before you synthesize or attribute. Reading only the
+answer from the single chunk a search returned. With `nessie_read`, keep reading
+the chunks that follow it — raise `offset` to page forward, or pass `tailLimit`
+for the very end — since the resolution usually comes later, sometimes a few
+chunks on, sometimes at the end, and skim its beginning for framing, before you
+synthesize or attribute. Reading only the
 opening or a middle chunk gives you the setup of a thread, not its outcome, and
 is a recurring source of wrong answers and misattributed quotes — the
 conversation's title and first messages also tell you whether the matched text
@@ -500,10 +502,10 @@ For each relevant search result:
   exist.
 - If multiple contexts match the same entity or topic, read the relevant set;
   do not stop at the first context that confirms a plausible answer.
-- Conversations build over many exchanges, and the conclusion lands at the end.
-  Read through to the tail — not just the opening or the middle chunk a search
-  returned — so you capture the decision, correction, or outcome, not only the
-  setup.
+- Conversations build over many exchanges, and the conclusion lands later than
+  where a search drops you. Read the chunks that follow the match through to the
+  resolution — not just the opening or the single middle chunk — so you capture
+  the decision, correction, or outcome, not only the setup.
 
 If you create a context based only on search snippets without reading full
 sources, the output will be thin and missing critical details. This is not
