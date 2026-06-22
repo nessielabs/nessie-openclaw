@@ -1,7 +1,7 @@
 ---
 name: nessie
 description: Search and read the user's Nessie context library from OpenClaw through hosted MCP.
-version: 0.1.7
+version: 0.1.8
 metadata:
   openclaw:
     homepage: https://github.com/nessielabs/nessie-openclaw
@@ -212,6 +212,16 @@ opening or a middle chunk gives you the setup of a thread, not its outcome, and
 is a recurring source of wrong answers and misattributed quotes — the
 conversation's title and first messages also tell you whether the matched text
 is the user's own words or quoted, pasted, or translated material.
+
+A transcript is a dialogue between the user and an AI agent, and the two voices
+do not carry equal authority. The agent proposes — options, drafts, plans,
+names, recommendations — but a proposal is not a decision. Anchor on what the
+user said: an agent's suggestion only became the outcome if the user adopted it,
+and the user's next message often narrows, edits, rejects, or overrides what the
+agent just laid out. When you reconstruct what was decided or attribute a
+position, treat the agent's text as proposals and scaffolding and the user's
+words as what actually holds. Do not mistake the shape the agent sketched for
+the shape the user chose.
 
 ## Team and Shared Sources
 
