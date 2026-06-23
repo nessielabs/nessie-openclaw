@@ -372,10 +372,12 @@ Use team and team-shared roots when the user asks about a teammate by name,
 asks about shared team work, or explicitly asks to compare their work with
 someone else's.
 
-When a Nessie tool exposes an `owner` selector, omit it or use `current_user` /
-`me` for first-person questions. Pass `owner: { userId: "..." }`,
-`owner: { email: "..." }`, or `owner: "team"` only for teammate-owned sources
-or explicit shared-team scope. Never infer current-user ownership from provider
+When a Nessie tool exposes an `owner` selector, use `current_user` / `me` for
+first-person questions. The discovery and search defaults are `all_readable`
+(own plus team-shared), so explicitly narrow with `current_user` / `me` rather
+than omitting `owner`, or first-person questions silently pull in team-shared
+sources. Pass `owner: { userId: "..." }`, `owner: { email: "..." }`, or
+`owner: "team"` only for teammate-owned sources or explicit shared-team scope. Never infer current-user ownership from provider
 account email, integration display name, or machine label; use returned
 `sourceOwner` metadata instead.
 
@@ -481,11 +483,21 @@ without its body — to size or inspect a node before reading it.
 
 Successful read and discovery responses may include a trailing `cloud sync`
 notice (text, on the filesystem verbs) or a top-level `cloudSyncNotice` object
-(on the JSON profile, check-in, and team tools). If present, read and relay its
-message and action to the user before relying on empty or sparse results. The
-status is a stable machine-readable value such as `not_enabled`,
-`no_synced_data`, or `unknown`. This notice is not a tool failure; it explains
-why otherwise valid search, list, or read results may be incomplete.
+(on the JSON profile, check-in, and team tools). On the text tools the notice is
+appended as three `#`-prefixed lines at the end of the output, with the status
+on the first line:
+
+```
+# cloud sync: not_enabled
+# <message>
+# <action>
+```
+
+If present, read and relay its message and action to the user before relying on
+empty or sparse results. The status is a stable machine-readable value such as
+`not_enabled`, `no_synced_data`, or `unknown`. This notice is not a tool
+failure; it explains why otherwise valid search, list, or read results may be
+incomplete.
 
 ## Manual Research Workflow
 
