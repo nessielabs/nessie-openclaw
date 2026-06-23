@@ -102,7 +102,7 @@ for needle in [
     "Choose the source order from the user's intent",
     "Context search is an orientation tool",
     "latest developments",
-    "date-only bounds to `nessie_search`, `nessie_ls`, and `nessie_list`",
+    "date-only bounds to `nessie_grep` and `nessie_ls`",
     "plus `timezone` as an IANA timezone",
     "Date-only bounds require `timezone`",
     "local Monday-Sunday week",

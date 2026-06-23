@@ -1,7 +1,7 @@
 ---
 name: nessie
 description: Search and read the user's Nessie context library from OpenClaw through hosted MCP.
-version: 0.1.8
+version: 0.1.9
 metadata:
   openclaw:
     homepage: https://github.com/nessielabs/nessie-openclaw
@@ -79,7 +79,7 @@ I", "what do you know about me", "what did I do", "what am I working on", "my
 recent work", preferences, projects, decisions, work history, or other personal
 memory. If `nessie_who_am_i` or `nessie_check_in` returns sparse profile data,
 continue by calling `nessie_ls` to find the user's personal transcript and note
-roots, then use `nessie_search` with `parentId` scoped to those roots or browse
+roots, then use `nessie_grep` with `parentId` scoped to those roots or browse
 their recent children. Sparse profile data does not mean sparse raw data.
 
 ## Core Loop
@@ -106,15 +106,18 @@ remember: "I can save this back to Nessie so future sessions can pick it up."
 
 Use `nessie_ls` for source discovery and hierarchy traversal:
 
-- call with no `parentId` to list source groups, counts, and root nodes
-- pass `sourceType` as `all`, `context`, `transcript`, `profile`, or
-  `obsidian` to scope the overview
-- leave `owner` omitted, or pass `current_user` / `me`, for the authenticated
-  user's own sources; pass `team` or an explicit `{ userId }` / `{ email }`
-  only for a teammate or explicit shared-team question. For named teammates,
-  prefer `nessie_team_list` or `nessie_integration_list`, then pass the member
-  `userId` / resource `ownerUserId` as `owner: { userId: "..." }`. `{ email }`
-  resolves only from existing team member email metadata.
+- call with no `parentId` to list the root nodes, including a virtual
+  `Contexts` root (a `nessie_folder`) that groups the user's top-level contexts
+  and folders; open it by passing its id as `parentId`
+- pass `sourceType` as `all`, `context`, `transcript`, `profile`, `obsidian`,
+  or `granola` to scope the overview
+- `nessie_ls` defaults to `owner: "all_readable"` — everything the user can
+  read, their own sources plus team-shared. Pass `current_user` / `me` to
+  narrow to the authenticated user's own sources for first-person questions;
+  pass an explicit `{ userId }` / `{ email }` for a specific teammate. For named
+  teammates, prefer `nessie_team_list` or `nessie_integration_list`, then pass
+  the member `userId` / resource `ownerUserId` as `owner: { userId: "..." }`.
+  `{ email }` resolves only from existing team member email metadata.
 - pass `parentId` to list direct children of a folder-like node, such as an
   Obsidian vault or folder
 - use returned `id`, `kind`, `sourceType`, `path` or `sourceId`, child counts,
@@ -132,22 +135,29 @@ directly to the relevant folder and read the latest entry. These artifacts
 often live in synced note sources, not in contexts or transcripts, so searching
 contexts alone may miss them.
 
-Use `nessie_search` when you have a concrete query. It supports `type` values
-`context`, `transcript`, `profile`, `obsidian`, and `all`. For
-hierarchy-scoped search, pass `parentId` after discovering the node id with
-`nessie_ls`. Use `literal: true` for exact phrase or substring checks. Literal
-mode matches the whole query string as a contiguous substring, so do not treat
-an unquoted natural language description as one exact phrase.
+Use `nessie_grep` when you have a concrete query. It returns text blocks — one
+per hit, an `id · kind · owner · date · title` header followed by the matching
+content; copy a hit's id to read the full node with `nessie_cat`. It supports
+`type` values `context`, `transcript`, `profile`, `obsidian`, `granola`, and
+`all`. For hierarchy-scoped search, pass `parentId` after discovering the node
+id with `nessie_ls` to restrict the search to that node and its descendants.
+Pass `repos` (canonical repoKeys) to narrow to specific git repos; that filter
+excludes everything not tied to a repo. Use `literal: true` for exact phrase or
+substring checks. Literal mode matches the whole query string as a contiguous
+substring, so split a natural language description into salient exact terms
+rather than treating it as one phrase.
 
-`nessie_search`, `nessie_ls`, and `nessie_list` default to
-`owner: "current_user"`. Use `owner: "team"` for explicit team-wide discovery
-and explicit `{ userId }` or `{ email }` objects for teammate-owned sources.
+`nessie_grep` and `nessie_ls` default to `owner: "all_readable"` — the user's
+own sources plus team-shared. Pass `current_user` / `me` to narrow to the
+authenticated user's own sources, and explicit `{ userId }` or `{ email }`
+objects for teammate-owned sources.
 
 Do not default every discovery or knowledge request to `type: "context"`.
 Choose `type` from the user's intent: use `context` for synthesized
 orientation, `obsidian` for notes, vaults, files, memos, source docs, task
-logs, and journals, `transcript` for prior AI conversations and agent resume
-state, and `all` when several source types are plausible.
+logs, and journals, `granola` for recorded meetings and calls, `transcript`
+for prior AI conversations and agent resume state, and `all` when several
+source types are plausible.
 
 Choose the source order from the user's intent, not from a global ranking:
 
@@ -203,11 +213,11 @@ Multi-message conversations build to their resolution at the end — the decisio
 the final answer, the "I already handled this", the corrected position that
 overturns an earlier one. When the user asks what was decided, what the
 conclusion was, who someone is, or what the current state of a thread is, do not
-answer from the single chunk a search returned. With `nessie_read`, keep reading
-the chunks that follow it — raise `offset` to page forward, or pass `tailLimit`
-for the very end — since the resolution usually comes later, sometimes a few
-chunks on, sometimes at the end, and skim its beginning for framing, before you
-synthesize or attribute. Reading only the
+answer from the single chunk a search returned. Read the whole node with
+`nessie_cat`, or for a long transcript use `nessie_tail` for the very end —
+since the resolution usually comes later, sometimes a few chunks on, sometimes
+at the end, and skim its beginning for framing, before you synthesize or
+attribute. Reading only the
 opening or a middle chunk gives you the setup of a thread, not its outcome, and
 is a recurring source of wrong answers and misattributed quotes — the
 conversation's title and first messages also tell you whether the matched text
@@ -257,13 +267,13 @@ Follow this resolver workflow for teammate questions:
    selected root, `kind` for raw node kinds such as `claude_code_chat` or
    `codex_chat`, and date-only `since` / `until` plus `timezone` for time
    windows.
-6. Read the matching sources with `nessie_read` before attributing work or
-   answering. Search and list results are routing breadcrumbs, not final
-   evidence.
+6. Read the matching sources with `nessie_cat` (or `nessie_tail` for the recent
+   end of a long transcript) before attributing work or answering. Search and
+   list results are routing breadcrumbs, not final evidence.
 
 For questions like "what did Tiger do yesterday?", start with
 `nessie_team_list` or `nessie_integration_list`, identify Tiger's shared
-integration root and `ownerUserId`, then call `nessie_search` with
+integration root and `ownerUserId`, then call `nessie_grep` with
 `owner: { userId: "<tiger-owner-user-id>" }`, the selected `parentId` when one
 is available, and date-only `since` / `until` plus `timezone`. `nessie_ls` can
 be used with the same owner and `parentId` to browse recent children instead of
@@ -290,7 +300,7 @@ window, a more specific `parentId`, or a narrower `kind`, then retry.
 For relative date phrases such as "today", "yesterday", "this week", "last
 week", or "so far", use OpenClaw's user timezone or current date context when
 it is exposed, such as through `agents.defaults.userTimezone`. Pass
-date-only bounds to `nessie_search`, `nessie_ls`, and `nessie_list` through
+date-only bounds to `nessie_grep` and `nessie_ls` through
 `since` and `until` as `yyyy-mm-dd` values, plus `timezone` as an IANA timezone
 such as `America/Los_Angeles`. The hosted Nessie MCP server resolves those
 local dates programmatically before querying.
@@ -419,10 +429,9 @@ session", "continue this Codex session", or a pasted conversation/node ID,
 treat resume as a workflow over search plus read.
 
 1. Identify the target conversation or source node. If the user gave an ID,
-   call `nessie_read` with `headLimit: 5` and `tailLimit: 10` to read both the
-   beginning and recent tail. If they gave a title, project, tool, teammate,
-   date, or workspace, search and browse until you find the matching recent
-   conversation.
+   call `nessie_head` for the beginning and `nessie_tail` for the recent tail to
+   read both ends. If they gave a title, project, tool, teammate, date, or
+   workspace, search and browse until you find the matching recent conversation.
 2. Read both the beginning and the end before synthesizing. The beginning
    usually explains the goal and constraints; the end usually contains the
    current state, latest decisions, open blockers, and uncommitted next steps.
@@ -443,21 +452,26 @@ resume.
 
 ## Reading Sources
 
-Use `nessie_read` to read specific source nodes by UUID. It supports Obsidian
-notes as well as contexts, transcripts, profile sections, and Nessie chats.
-When reading Obsidian notes, preserve `sourceId` or `path` in citations or
-source selection.
+Use `nessie_cat` to read a specific source node's full content by UUID, and
+`nessie_head` / `nessie_tail` for the first / last N lines. They support
+Obsidian notes as well as contexts, transcripts, profile sections, Nessie chats,
+and single messages; containers (integration roots, vaults, folders) are
+rejected with an "is a directory" error pointing back to `nessie_ls`. When
+reading Obsidian notes, preserve `sourceId` or `path` in citations or source
+selection.
 
-For long transcripts or takeover workflows, pass `headLimit` and `tailLimit`
-to get a windowed read response with `head`, optional `tail`, and a
-`readingStrategy` object.
+For long transcripts or takeover workflows, read `nessie_head` for the framing
+beginning and `nessie_tail` for the recent end rather than loading the whole
+node. Use `nessie_stat` to see a node's metadata (kind, owner, size, dates)
+without its body — to size or inspect a node before reading it.
 
-Successful read and discovery MCP tool responses may include a top-level
-`cloudSyncNotice` object. If present, read and relay its `message` and `action`
-to the user before relying on empty or sparse results. `cloudSyncNotice.status`
-is a stable machine-readable value such as `not_enabled`, `no_synced_data`, or
-`unknown`. This notice is not an MCP tool failure; it explains why otherwise
-valid search, list, or read results may be incomplete.
+Successful read and discovery responses may include a trailing `cloud sync`
+notice (text, on the filesystem verbs) or a top-level `cloudSyncNotice` object
+(on the JSON profile, check-in, and team tools). If present, read and relay its
+message and action to the user before relying on empty or sparse results. The
+status is a stable machine-readable value such as `not_enabled`,
+`no_synced_data`, or `unknown`. This notice is not a tool failure; it explains
+why otherwise valid search, list, or read results may be incomplete.
 
 ## Manual Research Workflow
 
@@ -558,7 +572,7 @@ Output quality rules:
 The MCP connector does not expose Nessie's backend generated-context research
 agent. When the user asks for a reusable context, use the manual research
 workflow: search, read the sources yourself, synthesize the markdown, and then
-call `nessie_create_context` with the source document IDs that directly
+call `nessie_tee` with the source document IDs that directly
 informed the output. Do not require the agent to serialize large markdown
 through temporary files; MCP clients can pass structured strings.
 
@@ -570,13 +584,20 @@ user expects.
 
 ## Writing Back
 
-Use structured write parameters:
+The write verbs mirror the CLI and return a CLI-style confirmation line, not
+JSON:
 
-- create a context with `title`, `markdown`, optional `emoji`, optional
-  `folderId`, and provenance `sources`
-- edit a context with exact `oldString` and `newString`
-- rename, move, and delete contexts
-- create, rename, and delete folders
+- `nessie_tee` — create a context with `title`, `markdown`, optional `emoji`,
+  optional `folderId`, and provenance `sources`
+- `nessie_sed` — edit a context by exact `oldString` / `newString` (unique
+  unless `replaceAll`)
+- `nessie_mv` — move (`to`), rename (`name`), or unfile (`unfiled`) a context
+  (pass exactly one)
+- `nessie_rm` — delete a context
+- `nessie_mkdir` — create a folder (optional `parentId` to nest)
+- `nessie_rename_folder` — rename a folder, and optionally set or clear its
+  emoji
+- `nessie_rmdir` — delete an empty folder
 
 Use write operations when the user asks to save something or when new durable
 knowledge emerged and preserving it would help future sessions.
