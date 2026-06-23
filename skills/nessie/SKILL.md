@@ -113,11 +113,12 @@ Use `nessie_ls` for source discovery and hierarchy traversal:
   or `granola` to scope the overview
 - `nessie_ls` defaults to `owner: "all_readable"` — everything the user can
   read, their own sources plus team-shared. Pass `current_user` / `me` to
-  narrow to the authenticated user's own sources for first-person questions;
-  pass an explicit `{ userId }` / `{ email }` for a specific teammate. For named
-  teammates, prefer `nessie_team_list` or `nessie_integration_list`, then pass
-  the member `userId` / resource `ownerUserId` as `owner: { userId: "..." }`.
-  `{ email }` resolves only from existing team member email metadata.
+  narrow to the authenticated user's own sources for first-person questions,
+  `owner: "team"` for explicit team-wide scope, or an explicit `{ userId }` /
+  `{ email }` for a specific teammate. For named teammates, prefer
+  `nessie_team_list` or `nessie_integration_list`, then pass the member
+  `userId` / resource `ownerUserId` as `owner: { userId: "..." }`. `{ email }`
+  resolves only from existing team member email metadata.
 - pass `parentId` to list direct children of a folder-like node, such as an
   Obsidian vault or folder
 - use returned `id`, `kind`, `sourceType`, `path` or `sourceId`, child counts,
@@ -149,8 +150,9 @@ rather than treating it as one phrase.
 
 `nessie_grep` and `nessie_ls` default to `owner: "all_readable"` — the user's
 own sources plus team-shared. Pass `current_user` / `me` to narrow to the
-authenticated user's own sources, and explicit `{ userId }` or `{ email }`
-objects for teammate-owned sources.
+authenticated user's own sources, `owner: "team"` for explicit team-wide scope
+(the same shared scope the default already covers), and explicit `{ userId }`
+or `{ email }` objects for a specific teammate's sources.
 
 Do not default every discovery or knowledge request to `type: "context"`.
 Choose `type` from the user's intent: use `context` for synthesized
@@ -204,9 +206,9 @@ broader conceptual phrases. After searching, always read full content with the
 appropriate reader. Search results are starting points, not answers.
 
 If a search result or transcript chunk cuts off mid-sentence or mid-thought,
-paginate forward with the source document reader. Do not run another search,
-guess at the missing content, or report "I don't know" when you have the
-document ID and chunk index to continue reading from.
+read the full node with `nessie_cat` (or `nessie_tail` for the recent end of a
+long transcript). Do not run another search, guess at the missing content, or
+report "I don't know" when you have the node id to read from.
 
 A search hit drops you into the middle of a conversation, not its conclusion.
 Multi-message conversations build to their resolution at the end — the decision,
@@ -331,6 +333,10 @@ Source types serve different purposes:
   them when the user refers to notes, vaults, files, memos, source docs, or
   asks for project knowledge that likely lives outside AI transcripts. Preserve
   their path and hierarchy when citing or selecting them.
+- Granola notes are recorded meeting and call material: the meeting summary and
+  its underlying transcript. They are authoritative for what was said in a
+  specific meeting or call - use them when the user asks about a meeting,
+  standup, interview, or who said what on a call.
 - Profile sections contain structured biographical facts about the user. Check
   the profile for identity, connections, project info, and other recurring
   personal context.
@@ -429,9 +435,11 @@ session", "continue this Codex session", or a pasted conversation/node ID,
 treat resume as a workflow over search plus read.
 
 1. Identify the target conversation or source node. If the user gave an ID,
-   call `nessie_head` for the beginning and `nessie_tail` for the recent tail to
-   read both ends. If they gave a title, project, tool, teammate, date, or
-   workspace, search and browse until you find the matching recent conversation.
+   call `nessie_head` for the beginning (roughly the first 10 lines is enough
+   for framing) and `nessie_tail` for the recent tail (bias longer here, roughly
+   the last 25 to 50 lines, since the handoff state lives at the end). If they
+   gave a title, project, tool, teammate, date, or workspace, search and browse
+   until you find the matching recent conversation.
 2. Read both the beginning and the end before synthesizing. The beginning
    usually explains the goal and constraints; the end usually contains the
    current state, latest decisions, open blockers, and uncommitted next steps.
