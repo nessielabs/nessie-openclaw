@@ -1,7 +1,7 @@
 ---
 name: nessie
 description: Search and read the user's Nessie context library from OpenClaw through hosted MCP.
-version: 0.1.9
+version: 0.1.10
 metadata:
   openclaw:
     homepage: https://github.com/nessielabs/nessie-openclaw
@@ -143,10 +143,16 @@ content; copy a hit's id to read the full node with `nessie_cat`. It supports
 `all`. For hierarchy-scoped search, pass `parentId` after discovering the node
 id with `nessie_ls` to restrict the search to that node and its descendants.
 Pass `repos` (canonical repoKeys) to narrow to specific git repos; that filter
-excludes everything not tied to a repo. Use `literal: true` for exact phrase or
-substring checks. Literal mode matches the whole query string as a contiguous
-substring, so split a natural language description into salient exact terms
-rather than treating it as one phrase.
+excludes everything not tied to a repo. `nessie_grep` is hybrid (semantic +
+keyword) by default, tuned for fuzzy, conceptual queries, and it under-returns
+short exact-token lookups. Use `literal: true` whenever the query is a name,
+email, UUID, error code, file path, other identifier, or an exact quoted
+wording. Literal mode matches the whole query string as a contiguous substring,
+so split a natural language description into salient exact terms rather than
+treating it as one phrase. Deciding a query is a name or identifier lookup is
+your call: when a hybrid search on a proper noun comes back thin or empty, rerun
+it with `literal: true` before concluding Nessie has nothing - that under-return
+is a search-mode artifact, not absence of data.
 
 `nessie_grep` and `nessie_ls` default to `owner: "all_readable"` — the user's
 own sources plus team-shared. Pass `current_user` / `me` to narrow to the
