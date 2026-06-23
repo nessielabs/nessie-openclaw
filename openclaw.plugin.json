@@ -2,7 +2,7 @@
   "id": "nessie-openclaw",
   "name": "Nessie",
   "description": "OpenClaw setup helper and skill guidance for the hosted Nessie MCP server.",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "skills": [
     "skills/nessie"
   ],
