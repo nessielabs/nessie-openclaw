@@ -108,9 +108,9 @@ Use `nessie_ls` for source discovery and hierarchy traversal:
 
 - call with no `parentId` to list the root nodes, including a virtual
   `Contexts` root (a `nessie_folder`) that groups the user's top-level contexts
-  and folders, and a virtual `Chats` root that groups the user's in-app
-  (Nessie-native) chats; open either by passing its id as `parentId`, and
-  `nessie_cat` a chat to read the conversation
+  and folders, and a virtual `Chats` root (also a `nessie_folder`) that groups
+  the user's in-app (Nessie-native) chats; open either by passing its id as
+  `parentId`, and `nessie_cat` a chat to read the conversation
 - pass `sourceType` as `all`, `context`, `transcript`, `profile`, `obsidian`,
   or `granola` to scope the overview
 - `nessie_ls` defaults to `owner: "all_readable"` — everything the user can
