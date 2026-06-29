@@ -127,9 +127,10 @@ Use `nessie_ls` for source discovery and hierarchy traversal:
   `sourceOwner`, and affordances to decide whether to read, search, or traverse
   further
 - when one of the user's own sources is shared with their team, its row carries
-  a `shared` column (and a `sharedWith` field) naming the audience — a team
-  name, `<team> admins`, a teammate, or `+N` when there are more. A context
-  inside a shared folder inherits that folder's audience, so it is not blank.
+  a `shared` column (and a `sharedWith` field) whose value is a bounded headline
+  of the audience — a team name, `<team> admins`, a teammate, or `+N` when there
+  are more. A context inside a shared folder inherits that folder's audience, so
+  it is not blank.
   The column is present only when something in the listing is shared out, so a
   missing `shared` column means none of these sources are shared, not that
   sharing is unknown
