@@ -128,9 +128,16 @@ Use `nessie_ls` for source discovery and hierarchy traversal:
   further
 - when one of the user's own sources is shared with their team, its row carries
   a `shared` column (and a `sharedWith` field) naming the audience — a team
-  name, `<team> admins`, or a teammate. The column is present only when
-  something in the listing is shared out, so a missing `shared` column means
-  none of these sources are shared, not that sharing is unknown
+  name, `<team> admins`, a teammate, or `+N` when there are more. A context
+  inside a shared folder inherits that folder's audience, so it is not blank.
+  The column is present only when something in the listing is shared out, so a
+  missing `shared` column means none of these sources are shared, not that
+  sharing is unknown. The column is a bounded headline; call `nessie_shares`
+  for the full, authoritative audience of a node or of everything shared
+- use `nessie_shares` as the source of truth for outbound sharing: with no
+  argument it lists every resource the user has shared and to whom; with a
+  `nodeId` it returns that node's full effective audience, including grants
+  inherited from a shared ancestor folder (each tagged with the folder via)
 
 Use source browsing before search when the user asks what is available, wants
 to inspect a vault or folder, or is unsure which source world contains the
