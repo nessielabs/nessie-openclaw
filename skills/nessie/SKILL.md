@@ -1,7 +1,7 @@
 ---
 name: nessie
 description: Search and read the user's Nessie context library from OpenClaw through hosted MCP.
-version: 0.1.11
+version: 0.1.12
 metadata:
   openclaw:
     homepage: https://github.com/nessielabs/nessie-openclaw
@@ -626,6 +626,13 @@ JSON:
 - `nessie_rename_folder` — rename a folder, and optionally set or clear its
   emoji
 - `nessie_rmdir` — delete an empty folder
+- `nessie_delete_conversation` — delete a synced conversation/transcript: removes
+  it from the library and excludes it from future syncs so it is not re-imported.
+  Two-step: call first **without** `confirm` to get a preview (the conversation
+  title and message count), show that to the user, then call again with
+  `confirm: true` to delete. Use it only when the user explicitly asks to remove a
+  specific chat. This is for conversations only — `nessie_rm` is for contexts, and
+  the two are intentionally separate.
 
 Use write operations when the user asks to save something or when new durable
 knowledge emerged and preserving it would help future sessions.
@@ -648,6 +655,14 @@ Context operations should be additive whenever possible:
 - Prefer creating alongside, not instead of. If the user has existing contexts
   on a topic, create your new synthesis as a separate context rather than
   deleting and replacing the originals.
+
+Deleting a conversation is different from editing a context, and it is the one
+case where you remove synced source material rather than something you authored.
+Conversation transcripts are normally read-only. Only call
+`nessie_delete_conversation` when the user explicitly asks to remove that chat -
+never to "clean up" or deduplicate - and preview what will be removed (its title
+and roughly how many messages) before confirming. The delete is soft and
+recoverable, but treat it as if it were permanent.
 
 ## Epistemic Rules
 
