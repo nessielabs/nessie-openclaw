@@ -126,6 +126,11 @@ Use `nessie_ls` for source discovery and hierarchy traversal:
 - use returned `id`, `kind`, `sourceType`, `path` or `sourceId`, child counts,
   `sourceOwner`, and affordances to decide whether to read, search, or traverse
   further
+- when one of the user's own sources is shared with their team, its row carries
+  a `shared` column (and a `sharedWith` field) naming the audience — a team
+  name, `<team> admins`, or a teammate. The column is present only when
+  something in the listing is shared out, so a missing `shared` column means
+  none of these sources are shared, not that sharing is unknown
 
 Use source browsing before search when the user asks what is available, wants
 to inspect a vault or folder, or is unsure which source world contains the
