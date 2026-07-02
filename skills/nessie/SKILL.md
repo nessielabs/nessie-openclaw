@@ -633,6 +633,9 @@ JSON:
 - `nessie_mkdir` — create a folder (optional `parentId` to nest)
 - `nessie_rename_folder` — rename a folder, and optionally set or clear its
   emoji
+- `nessie_move_folder` - move a folder into another folder (`to` = parent folder
+  UUID) or to the top level (`unfiled: true`); pass exactly one. A folder cannot
+  be moved into itself or one of its own subfolders.
 - `nessie_rmdir` — delete an empty folder
 - `nessie_delete_conversation` — delete a synced conversation/transcript: removes
   it from the library and excludes it from future syncs so it is not re-imported.
