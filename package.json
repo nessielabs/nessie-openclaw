@@ -19,7 +19,8 @@
     "LICENSE"
   ],
   "scripts": {
-    "validate": "bash scripts/validate.sh"
+    "validate": "bash scripts/validate.sh",
+    "prepare": "git rev-parse --git-dir > /dev/null 2>&1 && git config core.hooksPath scripts/hooks || true"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0"

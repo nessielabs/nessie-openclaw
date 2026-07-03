@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+#
+# Auto-bump the plugin version and drop a CHANGELOG stub when shipped plugin
+# content changes. Installed via the package.json "prepare" script, which points
+# core.hooksPath at scripts/hooks. See CONTRIBUTING.md.
+#
+set -euo pipefail
+
+TOPLEVEL="$(git rev-parse --show-toplevel)"
+cd "$TOPLEVEL"
+
+STAGED="$(git diff --cached --name-only)"
+
+# Only bump when shipped plugin content changed (the skill, runtime, or setup
+# manifest). Docs-only or CHANGELOG-only commits do not trigger a release.
+if ! echo "$STAGED" | grep -qE '^(skills/|index\.js$|openclaw\.plugin\.json$)'; then
+  exit 0
+fi
+
+# Respect a manual bump: if package.json is already staged, the author is setting
+# the version by hand (e.g. a minor/major), so leave everything alone.
+if echo "$STAGED" | grep -q '^package.json$'; then
+  exit 0
+fi
+
+CURRENT=$(node -p "require('./package.json').version")
+NEW=$(node -p "const p='${CURRENT}'.split('.'); p[2]=+p[2]+1; p.join('.')")
+
+# Keep the four version locations validate.sh enforces in lockstep.
+node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('package.json','utf8'));p.version='${NEW}';fs.writeFileSync('package.json',JSON.stringify(p,null,2)+'\n');"
+node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('openclaw.plugin.json','utf8'));p.version='${NEW}';fs.writeFileSync('openclaw.plugin.json',JSON.stringify(p,null,2)+'\n');"
+node -e "const fs=require('fs');let s=fs.readFileSync('index.js','utf8');s=s.replace(/const PLUGIN_VERSION = \"[^\"]+\";/,'const PLUGIN_VERSION = \"${NEW}\";');fs.writeFileSync('index.js',s);"
+node -e "const fs=require('fs');const f='skills/nessie/SKILL.md';let s=fs.readFileSync(f,'utf8');s=s.replace(/^version: .*$/m,'version: ${NEW}');fs.writeFileSync(f,s);"
+git add package.json openclaw.plugin.json index.js skills/nessie/SKILL.md
+
+# Drop a dated CHANGELOG stub above the newest release, unless the author already
+# wrote one for this version. The bullet is a sensible default derived from what
+# changed; refine it to a user-facing line before pushing.
+CHANGELOG="CHANGELOG.md"
+if ! grep -q "^## ${NEW} " "$CHANGELOG"; then
+  DATE=$(node -p "new Date().toISOString().slice(0,10)")
+  if echo "$STAGED" | grep -q '^skills/'; then
+    BULLET="Skill: update the bundled Nessie guidance."
+  elif echo "$STAGED" | grep -q '^index\.js$'; then
+    BULLET="Runtime: update the plugin runtime."
+  else
+    BULLET="Plugin: update setup metadata."
+  fi
+  NEW="${NEW}" DATE="${DATE}" BULLET="${BULLET}" node -e "
+    const fs=require('fs');
+    const f=process.env.CHANGELOG || 'CHANGELOG.md';
+    const lines=fs.readFileSync('CHANGELOG.md','utf8').split('\n');
+    const idx=lines.findIndex(l=>/^## /.test(l));
+    const at=idx===-1?lines.length:idx;
+    lines.splice(at,0,'## '+process.env.NEW+' - '+process.env.DATE,'','- '+process.env.BULLET,'');
+    fs.writeFileSync('CHANGELOG.md',lines.join('\n'));
+  "
+  git add "$CHANGELOG"
+fi
+
+echo "Auto-bumped nessie-openclaw: ${CURRENT} -> ${NEW} (refine the CHANGELOG bullet before pushing)"
