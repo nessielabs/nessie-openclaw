@@ -2,41 +2,45 @@
 
 Thanks for improving `@nessielabs/nessie-openclaw`. This plugin is small and
 mostly documentation (the Nessie skill), but every change ships as a versioned
-npm package, so a few release mechanics are required on every PR.
+npm package, so a few release mechanics apply. Most of them are automated.
 
-## Every PR must bump the version
+## Setup
+
+Run `npm install` once after cloning. Its `prepare` script points
+`core.hooksPath` at `scripts/hooks`, which installs the pre-commit hook below.
+
+## Versioning is automatic
 
 This project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-Bump the version on every change that ships (skill edits, runtime changes, setup
-metadata):
-
-- Patch (`0.1.13` -> `0.1.14`) for skill wording, docs, and fixes.
-- Minor for a new capability or setup flow.
-- Major for a breaking change to the plugin contract.
-
-The version is stored in **four** places that must stay identical.
-`scripts/validate.sh` fails the build if they drift, so update all four in the
-same commit:
+When you stage a change to shipped plugin content (`skills/`, `index.js`, or
+`openclaw.plugin.json`), the pre-commit hook auto-bumps the **patch** version and
+keeps the four locations `scripts/validate.sh` enforces in lockstep:
 
 1. `package.json` - `"version"`
 2. `openclaw.plugin.json` - `"version"`
 3. `index.js` - `const PLUGIN_VERSION = "..."`
 4. `skills/nessie/SKILL.md` - the `version:` frontmatter field
 
-## Every PR must add a CHANGELOG entry
+You do not bump these by hand for a normal change.
 
-Add a new section at the top of `CHANGELOG.md`, above the previous release, in
-the existing format:
+**Minor or major bumps:** stage a hand-edited `package.json` version in your
+commit. The hook sees `package.json` already staged and leaves your value alone
+(including the other three files, so set them yourself to match).
+
+## The CHANGELOG is auto-stubbed
+
+The same hook prepends a dated entry to `CHANGELOG.md` for the new version with a
+default bullet derived from what changed. **Refine that bullet into a concise,
+user-facing line before pushing** - the changelog ships inside the published
+package (it is listed in `package.json` `files`). Keep the existing format:
 
 ```
-## X.Y.Z — YYYY-MM-DD
+## X.Y.Z - YYYY-MM-DD
 
 - Skill: one line per user-visible change.
 ```
 
-Use the same version you bumped to, and today's date. `CHANGELOG.md` is shipped
-inside the published package (it is listed in `package.json` `files`), so keep
-entries user-facing and concise.
+Use a hyphen (not an em dash) in the header, matching the rest of the file.
 
 ## Before you push
 
