@@ -4,6 +4,10 @@ All notable changes to `@nessielabs/nessie-openclaw` are documented here. This
 project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html); each
 release is tagged `vX.Y.Z` on the commit that carries that version.
 
+## 0.1.14 — 2026-07-02
+
+- Skill: document the `nessie_move_folder` tool (move a folder into another folder, or to the top level; rejects moving a folder into itself or one of its own subfolders).
+
 ## 0.1.13 — 2026-06-29
 
 - Skill: document the `nessie_ls` shared column and folder share inheritance.
