@@ -4,6 +4,10 @@ All notable changes to `@nessielabs/nessie-openclaw` are documented here. This
 project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html); each
 release is tagged `vX.Y.Z` on the commit that carries that version.
 
+## 0.1.15 - 2026-07-05
+
+- Skill: document opaque `grp_…` device-group ids from the local Nessie CLI/app - this connector keys combined device-group entries on a representative UUID root and cannot resolve pasted `grp_…` ids yet; agents are told to rerun `nessie_ls` and use the combined entry's UUID (NESSIE-1216/NESSIE-1242).
+
 ## 0.1.14 - 2026-07-02
 
 - Skill: document the `nessie_move_folder` tool (move a folder into another folder, or to the top level; rejects moving a folder into itself or one of its own subfolders).
