@@ -4,6 +4,10 @@ All notable changes to `@nessielabs/nessie-openclaw` are documented here. This
 project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html); each
 release is tagged `vX.Y.Z` on the commit that carries that version.
 
+## 0.1.16 - 2026-07-08
+
+- Skill: check-in should pass `timezone` to `nessie_check_in` / `nessie_who_am_i` so recent-activity and profile display timestamps render in the user's local time instead of UTC, and should read the tail of recent conversations with `nessie_tail` before summarizing current work, since names/labels describe where a thread began and go stale for long-running chats (NESSIE-1274).
+
 ## 0.1.15 - 2026-07-05
 
 - Skill: document opaque `grp_…` device-group ids from the local Nessie CLI/app - this connector keys combined device-group entries on a representative UUID root and cannot resolve pasted `grp_…` ids yet; agents are told to rerun `nessie_ls` and use the combined entry's UUID (NESSIE-1216/NESSIE-1242).
