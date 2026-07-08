@@ -1,7 +1,7 @@
 ---
 name: nessie
 description: Search and read the user's Nessie context library from OpenClaw through hosted MCP.
-version: 0.1.15
+version: 0.1.16
 metadata:
   openclaw:
     homepage: https://github.com/nessielabs/nessie-openclaw
@@ -73,6 +73,20 @@ The MCP check-in response exposes profile sections as source nodes:
 number of recent activity documents included in the check-in response. It is
 bounded by the requested `recentLimit`; it is not a count of all available
 Nessie documents.
+
+Pass `timezone` (an IANA zone such as `America/Los_Angeles`, from OpenClaw's
+`agents.defaults.userTimezone` when it is exposed) so the recent-activity and
+profile `displayTimestamp` / `displayUpdatedAt` fields render in the user's
+local time; without it those display fields are explicit UTC, while the
+canonical `originalUpdatedAt` / `updatedAt` ISO fields are always present.
+`nessie_who_am_i` takes the same `timezone` parameter.
+
+Each recent-activity entry carries the conversation's `name` and stored `label`,
+which describe where that thread began; a long-running conversation may have
+moved on to a different topic since. Before summarizing what the user is
+currently working on, read the tail of the most recent and most relevant entries
+with `nessie_tail`, because the latest focus is at the end of the thread, not in
+its title. Do not narrate the recent-activity list from names and labels alone.
 
 Use `nessie_who_am_i` first for questions about the authenticated user: "who am
 I", "what do you know about me", "what did I do", "what am I working on", "my
