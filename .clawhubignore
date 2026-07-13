@@ -1,0 +1,18 @@
+# Files kept in the repo but excluded from the published ClawHub bundle artifact.
+# The bundle packer (clawhub package publish) walks the git tree and honors this
+# file; it does NOT read .gitignore. Keep this list to repo/dev metadata only.
+
+# Repo & CI metadata
+.github/
+.gitignore
+CONTRIBUTING.md
+
+# Dev tooling not needed at runtime
+scripts/hooks/
+package-lock.json
+
+# Generated locally by scripts/validate.sh
+reports/
+
+# The ignore file itself
+.clawhubignore
