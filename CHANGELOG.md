@@ -4,6 +4,10 @@ All notable changes to `@nessielabs/nessie-openclaw` are documented here. This
 project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html); each
 release is tagged `vX.Y.Z` on the commit that carries that version.
 
+## 0.1.17 - 2026-07-12
+
+- Skill: surface the team use case in the what-can-Nessie-do answer. The mental-model lead-in and Default UX examples were first-person only, so asking the skill what it can do never mentioned teams; add a team clause to the lead-in and team-oriented example questions (querying a team's shared sources, reading a teammate's sessions) with no hardcoded names. Mirrors the upstream `nessie-core` change.
+
 ## 0.1.16 - 2026-07-08
 
 - Skill: check-in should pass `timezone` to `nessie_check_in` / `nessie_who_am_i` so recent-activity and profile display timestamps render in the user's local time instead of UTC, and should read the tail of recent conversations with `nessie_tail` before summarizing current work, since names/labels describe where a thread began and go stale for long-running chats (NESSIE-1274).

@@ -1,7 +1,7 @@
 ---
 name: nessie
 description: Search and read the user's Nessie context library from OpenClaw through hosted MCP.
-version: 0.1.16
+version: 0.1.17
 metadata:
   openclaw:
     homepage: https://github.com/nessielabs/nessie-openclaw
@@ -33,8 +33,11 @@ agent-access mental model:
 
 > I can use Nessie to browse the sources you have connected, search your past
 > AI conversations and notes, read your saved contexts, and bring that context
-> into this OpenClaw session. You can ask a question, ask for a brief or memo,
-> or ask me to generate a structured context when you want something reusable.
+> into this OpenClaw session. In team scope I can do the same across the sources
+> your teammates have shared with you - answer what the team has worked on,
+> decided, or already tried, and read a teammate's actual sessions. You can ask
+> a question, ask for a brief or memo, or ask me to generate a structured
+> context when you want something reusable.
 
 The user does not need to switch into the Nessie app before getting value.
 Treat their natural-language request as the interface: search what Nessie
@@ -44,7 +47,9 @@ one powerful capability, not the only way to use Nessie.
 ## Default User Experience
 
 When a user asks what Nessie can do, explain that Nessie gives OpenClaw access
-to the context they have already built. Give normal back-and-forth examples:
+to the context they and their team have already built. Give normal
+back-and-forth examples, spanning both the user's own work and their team's
+shared sources:
 
 - "What do I know about this topic?"
 - "What did I decide about this project?"
@@ -53,11 +58,18 @@ to the context they have already built. Give normal back-and-forth examples:
 - "Search my Obsidian notes about this project."
 - "What have I already tried for this bug?"
 - "Use what I know from Nessie and help me draft this reply."
+- "What has my team been working on this week?"
+- "What did a teammate decide about this project, and why?"
+- "Show me the sessions my team shared on this repo."
+- "How did a teammate approach this part of the code?"
+- "Pull my team's shared context on this into the session."
 
-Do not frame context generation as the only or default thing the user should
-ask for. Many requests are answered through research, source-reading, and
-back-and-forth synthesis in the agent session; context generation is for deeper
-or reusable outputs.
+Team examples resolve against the sources teammates have shared with the user;
+keep first-person questions scoped to the user and widen to team-shared sources
+for the team-oriented ones. Do not frame context generation as the only or
+default thing the user should ask for. Many requests are answered through
+research, source-reading, and back-and-forth synthesis in the agent session;
+context generation is for deeper or reusable outputs.
 
 ## Check-In
 
