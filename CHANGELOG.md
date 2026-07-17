@@ -4,6 +4,10 @@ All notable changes to `@nessielabs/nessie-openclaw` are documented here. This
 project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html); each
 release is tagged `vX.Y.Z` on the commit that carries that version.
 
+## 0.1.19 - 2026-07-17
+
+- Skill: explain how to inspect images referenced by Nessie contexts through the hosted MCP asset tool.
+
 ## 0.1.18 - 2026-07-17
 
 - Skill: explain how to inspect images referenced by Nessie contexts through the hosted MCP asset tool.
