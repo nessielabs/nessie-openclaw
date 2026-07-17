@@ -4,6 +4,10 @@ All notable changes to `@nessielabs/nessie-openclaw` are documented here. This
 project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html); each
 release is tagged `vX.Y.Z` on the commit that carries that version.
 
+## 0.1.18 - 2026-07-17
+
+- Skill: explain how to inspect images referenced by Nessie contexts through the hosted MCP asset tool.
+
 ## 0.1.17 - 2026-07-12
 
 - Skill: surface the team use case in the what-can-Nessie-do answer. The mental-model lead-in and Default UX examples were first-person only, so asking the skill what it can do never mentioned teams; add a team clause to the lead-in and team-oriented example questions (querying a team's shared sources, reading a teammate's sessions) with no hardcoded names. Mirrors the upstream `nessie-core` change.

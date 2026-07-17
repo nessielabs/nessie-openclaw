@@ -1,7 +1,7 @@
 ---
 name: nessie
 description: Search and read the user's Nessie context library from OpenClaw through hosted MCP.
-version: 0.1.17
+version: 0.1.18
 metadata:
   openclaw:
     homepage: https://github.com/nessielabs/nessie-openclaw
@@ -517,6 +517,10 @@ and single messages; containers (integration roots, vaults, folders) are
 rejected with an "is a directory" error pointing back to `nessie_ls`. When
 reading Obsidian notes, preserve `sourceId` or `path` in citations or source
 selection.
+
+When useful, call `nessie_asset_get` with an asset UUID or
+`https://assets.nessielabs.com/v1/<asset-id>` URL to inspect an image referenced
+by a context.
 
 For long transcripts or takeover workflows, read `nessie_head` for the framing
 beginning and `nessie_tail` for the recent end rather than loading the whole

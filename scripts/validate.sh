@@ -107,6 +107,8 @@ for needle in [
     "Date-only bounds require `timezone`",
     "local Monday-Sunday week",
     "Do not treat UTC midnight as the boundary",
+    "nessie_asset_get",
+    "https://assets.nessielabs.com/v1/<asset-id>",
 ]:
     if needle not in skill:
         raise SystemExit(f"skills/nessie/SKILL.md must mention {needle}")
