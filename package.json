@@ -37,5 +37,8 @@
       "openclawVersion": "2026.4.25",
       "pluginSdkVersion": "2026.4.25"
     }
+  },
+  "overrides": {
+    "@hono/node-server": "^2.0.5"
   }
 }
