@@ -6,7 +6,7 @@ release is tagged `vX.Y.Z` on the commit that carries that version.
 
 ## 0.1.20 - 2026-07-28
 
-- Skill: update the bundled Nessie guidance.
+- Skill: recency-first teammate search (enumerate root children, not roots), no prior-seeded topic terms, and per-surface search operator semantics - from the first Hermes field test.
 
 ## 0.1.19 - 2026-07-17
 
