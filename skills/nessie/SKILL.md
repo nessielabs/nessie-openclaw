@@ -1,7 +1,7 @@
 ---
 name: nessie
 description: Search and read the user's Nessie context library from OpenClaw through hosted MCP.
-version: 0.1.20
+version: 0.1.21
 metadata:
   openclaw:
     homepage: https://github.com/nessielabs/nessie-openclaw
@@ -196,12 +196,23 @@ your call: when a hybrid search on a proper noun comes back thin or empty, rerun
 it with `literal: true` before concluding Nessie has nothing - that under-return
 is a search-mode artifact, not absence of data.
 
-Do not pack alternatives into a single `X OR Y OR Z` query. The keyword
-channel on this hosted surface parses websearch operators (`OR`, quoted
-phrases, `-` exclusion), but the semantic channel embeds the whole string as
-one query, so an operator chain still dilutes half the ranking. A separate
-`nessie_grep` per term or phrasing ranks better and behaves identically on
-every Nessie surface.
+Searching for multiple ideas: do not pack alternatives into one query. A
+query like `database migration OR onboarding OR pricing` under-returns
+because ranking buries every branch after the first under the leading
+term's matches. Run one `nessie_grep` per idea (`database migration`, then
+`onboarding feedback`, then `pricing discussion`) and read across the
+results.
+
+Searching for exact wording, names, or identifiers: pass `literal: true` -
+exact match, e.g. `PROJ-421`, `parseConfigFile`, `ship the beta by Friday`.
+
+Boolean queries on this hosted surface are reliable when every operand is
+quoted, and only then: `"roadmap" OR "launch plan"` is a dependable union
+and `"invoice" AND "refund"` requires both phrases, but bare
+`roadmap OR launch plan` degrades to soft matching where the first term
+dominates. Negation does not exist: `-term` and `NOT` are ignored or
+matched literally. When results look thin, raise the limit or split the
+query - do not add operators.
 
 `nessie_grep` and `nessie_ls` default to `owner: "all_readable"` — the user's
 own sources plus team-shared. Pass `current_user` / `me` to narrow to the
