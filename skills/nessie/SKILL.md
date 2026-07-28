@@ -1,7 +1,7 @@
 ---
 name: nessie
 description: Search and read the user's Nessie context library from OpenClaw through hosted MCP.
-version: 0.1.19
+version: 0.1.20
 metadata:
   openclaw:
     homepage: https://github.com/nessielabs/nessie-openclaw
@@ -196,6 +196,13 @@ your call: when a hybrid search on a proper noun comes back thin or empty, rerun
 it with `literal: true` before concluding Nessie has nothing - that under-return
 is a search-mode artifact, not absence of data.
 
+Do not pack alternatives into a single `X OR Y OR Z` query. The keyword
+channel on this hosted surface parses websearch operators (`OR`, quoted
+phrases, `-` exclusion), but the semantic channel embeds the whole string as
+one query, so an operator chain still dilutes half the ranking. A separate
+`nessie_grep` per term or phrasing ranks better and behaves identically on
+every Nessie surface.
+
 `nessie_grep` and `nessie_ls` default to `owner: "all_readable"` — the user's
 own sources plus team-shared. Pass `current_user` / `me` to narrow to the
 authenticated user's own sources, `owner: "team"` for explicit team-wide scope
@@ -328,6 +335,18 @@ integration root and `ownerUserId`, then call `nessie_grep` with
 is available, and date-only `since` / `until` plus `timezone`. `nessie_ls` can
 be used with the same owner and `parentId` to browse recent children instead of
 searching when the request is navigational.
+
+For "what is <teammate> working on" questions, enumerate their recent
+activity before searching by topic. `nessie_ls` with only an owner scope
+lists integration roots, whose timestamps describe the root, not the
+freshest conversation inside. Pass the most recently active roots as
+`parentId` to list the teammate's actual conversations (newest first), and
+`nessie_tail` the newest few. Only then run topic searches - and do not seed
+the topic terms solely from profile or check-in priors about the person (a
+new teammate is not onboarding-only); prior-seeded queries confirm what you
+already believed and miss their actual latest work. Search both their owner
+scope and the `all_readable` default, since a person's work is often
+discussed in other people's sessions.
 
 Use `owner: { email: "..." }` only when that email appears in team member
 metadata; otherwise email selectors return a clear error instead of silently
