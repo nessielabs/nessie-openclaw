@@ -1,7 +1,7 @@
 ---
 name: nessie
 description: Search and read the user's Nessie context library from OpenClaw through hosted MCP.
-version: 0.1.22
+version: 0.1.23
 metadata:
   openclaw:
     homepage: https://github.com/nessielabs/nessie-openclaw
@@ -806,15 +806,9 @@ openclaw nessie init --email <email>
 openclaw nessie init --email <email> --code <code>
 ```
 
-If OTP setup is not available, tell them to create a Nessie agent API key and
-run:
-
-```bash
-openclaw nessie init --api-key sk_nes_v1_...
-```
-
-They can also set the key as `NESSIE_API_KEY` in the OpenClaw environment. Do
-not ask the user to run a device-code login flow for this plugin.
+Do not ask the user for an existing Nessie API key or tell them to configure
+one manually. Do not ask the user to run a device-code login flow for this
+plugin.
 
 ## Provider-Agnostic Guidance
 

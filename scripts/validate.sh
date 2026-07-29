@@ -44,12 +44,13 @@ if manifest.get("version") != package_version:
     raise SystemExit("openclaw.plugin.json version must match package.json version")
 if manifest.get("skills") != ["skills/nessie"]:
     raise SystemExit("openclaw.plugin.json must load skills/nessie")
-if "NESSIE_API_KEY" not in json.dumps(manifest):
-    raise SystemExit("openclaw.plugin.json must declare NESSIE_API_KEY setup metadata")
+manifest_text = json.dumps(manifest)
+for forbidden in ["NESSIE_API_KEY", "api-key", "apiKey"]:
+    if forbidden in manifest_text:
+        raise SystemExit(f"openclaw.plugin.json must not expose manual API-key setup: {forbidden}")
 auth_methods = manifest.get("setup", {}).get("providers", [{}])[0].get("authMethods", [])
-for method in ["api-key", "otp"]:
-    if method not in auth_methods:
-        raise SystemExit(f"openclaw.plugin.json setup authMethods must include {method}")
+if auth_methods != ["otp"]:
+    raise SystemExit("openclaw.plugin.json setup authMethods must contain only otp")
 if "contracts" in manifest or "toolMetadata" in manifest:
     raise SystemExit("openclaw.plugin.json must not mirror hosted MCP tool contracts")
 if "endpoint" in manifest.get("uiHints", {}):
@@ -76,7 +77,6 @@ for needle in [
     "Nessie setup request timed out.",
     "https://mcp.nessielabs.com/mcp",
     "https://nessie-notes-go-843813578359.us-west1.run.app",
-    "NESSIE_API_KEY",
 ]:
     if needle not in runtime:
         raise SystemExit(f"index.js must mention {needle}")
@@ -84,6 +84,10 @@ for forbidden in ["registerTool", "client.callTool", "toolDefinitions"]:
     if forbidden in runtime:
         raise SystemExit(f"index.js must not mirror MCP tools via {forbidden}")
 for forbidden in [
+    "NESSIE_API_KEY",
+    "--api-key",
+    "process.env",
+    "resolveEnvRefs",
     "NESSIE_SETUP_ENDPOINT",
     "NESSIE_MCP_ENDPOINT",
     "NESSIE_ENDPOINT",
@@ -93,15 +97,6 @@ for forbidden in [
 ]:
     if forbidden in runtime:
         raise SystemExit(f"index.js must not expose configurable endpoints via {forbidden}")
-env_names = set(re.findall(r"process\.env\.([A-Za-z_][A-Za-z0-9_]*)", runtime))
-if env_names != {"NESSIE_API_KEY"}:
-    raise SystemExit(
-        "index.js may only read process.env.NESSIE_API_KEY; "
-        f"found {sorted(env_names)}"
-    )
-if re.search(r"process\.env\s*\[", runtime):
-    raise SystemExit("index.js must not use dynamic process.env access")
-
 skill = (root / "skills/nessie/SKILL.md").read_text(encoding="utf-8")
 skill_version = re.search(r"^version:\s*(\S+)\s*$", skill, re.MULTILINE)
 if not skill_version:
@@ -142,6 +137,8 @@ for needle in [
 for forbidden in [
     "Optionally write back if new information emerged",
     "Use write operations when the user asks to save something or when new durable knowledge emerged",
+    "NESSIE_API_KEY",
+    "--api-key",
 ]:
     if forbidden in skill:
         raise SystemExit(f"skills/nessie/SKILL.md must not authorize unconfirmed writes: {forbidden}")
@@ -150,6 +147,9 @@ readme = (root / "README.md").read_text(encoding="utf-8")
 for needle in ["openclaw plugins install", "openclaw nessie init", "openclaw nessie status", "hosted MCP server", "https://mcp.nessielabs.com/mcp"]:
     if needle not in readme:
         raise SystemExit(f"README.md must mention {needle}")
+for forbidden in ["NESSIE_API_KEY", "--api-key"]:
+    if forbidden in readme:
+        raise SystemExit(f"README.md must not expose manual API-key setup: {forbidden}")
 PY
 
 echo "Nessie OpenClaw package validation passed."

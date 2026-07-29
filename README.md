@@ -50,17 +50,8 @@ openclaw nessie status
 root MCP server entry to the OpenClaw config file with owner-only file
 permissions.
 
-## Manual Authentication
-
-If OTP setup is not available yet, create an agent API key in Nessie and run:
-
-```bash
-openclaw nessie init --api-key "sk_nes_v1_..."
-```
-
-This writes the same OpenClaw MCP server config used by the OTP setup flow.
-Both setup paths store the bearer key in the local OpenClaw config file in
-plaintext with `0600` permissions so OpenClaw can use the hosted MCP server
+The verified OTP flow stores the bearer key in the local OpenClaw config file
+in plaintext with `0600` permissions so OpenClaw can use the hosted MCP server
 without extra shell setup.
 
 The Nessie backend remains authoritative for access control. The API key maps
