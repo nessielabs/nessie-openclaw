@@ -2,7 +2,7 @@
   "id": "nessie-openclaw",
   "name": "Nessie",
   "description": "OpenClaw setup helper and skill guidance for the hosted Nessie MCP server.",
-  "version": "0.1.19",
+  "version": "0.1.20",
   "skills": [
     "skills/nessie"
   ],
@@ -26,21 +26,11 @@
       "sensitive": true,
       "placeholder": "sk_nes_v1_...",
       "help": "Created by openclaw nessie init. The setup command stores this in mcp.servers.nessie.headers.Authorization."
-    },
-    "endpoint": {
-      "label": "Nessie MCP endpoint",
-      "placeholder": "https://mcp.nessielabs.com/mcp",
-      "advanced": true,
-      "help": "Override only for staging or local development."
     }
   },
   "configSchema": {
     "type": "object",
     "additionalProperties": false,
-    "properties": {
-      "endpoint": {
-        "type": "string"
-      }
-    }
+    "properties": {}
   }
 }

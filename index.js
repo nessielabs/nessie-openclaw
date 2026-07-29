@@ -2,7 +2,7 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 
 const PLUGIN_ID = "nessie-openclaw";
-const PLUGIN_VERSION = "0.1.19";
+const PLUGIN_VERSION = "0.1.20";
 const MCP_SERVER_NAME = "nessie";
 const DEFAULT_MCP_ENDPOINT = "https://mcp.nessielabs.com/mcp";
 const DEFAULT_SETUP_BASE_URL = "https://nessie-notes-go-843813578359.us-west1.run.app";
@@ -25,8 +25,6 @@ function registerNessieCli(api) {
       .option("--email <email>", "Nessie account email for OTP setup")
       .option("--code <code>", "6-digit OTP code sent by Nessie")
       .option("--api-key <key>", "Nessie API key created in the Nessie app")
-      .option("--endpoint <url>", "Nessie setup API base URL")
-      .option("--mcp-endpoint <url>", "Nessie MCP endpoint")
       .option("--config <path>", "OpenClaw config path")
       .option("--json", "Print machine-readable JSON")
       .action(async (opts) => {
@@ -36,7 +34,6 @@ function registerNessieCli(api) {
     command
       .command("status")
       .description("Check whether the Nessie OpenClaw integration is connected")
-      .option("--mcp-endpoint <url>", "Nessie MCP endpoint override")
       .option("--config <path>", "OpenClaw config path")
       .option("--json", "Print machine-readable JSON")
       .action(async (opts) => {
@@ -61,13 +58,12 @@ async function handleNessieInit(opts) {
       throw new Error(validation);
     }
     const tools = await listHostedMcpTools({
-      endpoint: resolveMcpEndpoint(opts.mcpEndpoint),
+      endpoint: DEFAULT_MCP_ENDPOINT,
       apiKey,
     });
     const configPath = await writeOpenClawConfig({
       apiKey,
       configPath: opts.config,
-      mcpEndpoint: opts.mcpEndpoint,
     });
     printResult(opts, {
       connected: true,
@@ -86,7 +82,7 @@ async function handleNessieInit(opts) {
     throw new Error("Run `openclaw nessie init --email you@example.com`, or pass `--api-key sk_nes_v1_...`.");
   }
 
-  const baseUrl = resolveSetupBaseUrl(opts.endpoint);
+  const baseUrl = DEFAULT_SETUP_BASE_URL;
   if (codeWasProvided && !code) {
     throw new Error("Pass a non-empty 6-digit OTP code, or omit --code to request a new code.");
   }
@@ -121,7 +117,6 @@ async function handleNessieInit(opts) {
   const configPath = await writeOpenClawConfig({
     apiKey: issuedApiKey,
     configPath: opts.config,
-    mcpEndpoint: opts.mcpEndpoint,
   });
   printResult(opts, {
     connected: true,
@@ -147,7 +142,7 @@ async function handleNessieStatus(opts) {
     });
     return;
   }
-  const endpoint = resolveMcpEndpoint(opts.mcpEndpoint || server?.url);
+  const endpoint = DEFAULT_MCP_ENDPOINT;
 
   if (!apiKey) {
     printResult(opts, {
@@ -259,19 +254,6 @@ function validateNessieApiKey(value) {
   return undefined;
 }
 
-function resolveSetupBaseUrl(value) {
-  const raw = normalizeEndpoint(value || process.env.NESSIE_SETUP_ENDPOINT || DEFAULT_SETUP_BASE_URL);
-  return raw.endsWith("/mcp") ? raw.slice(0, -4) : raw;
-}
-
-function resolveMcpEndpoint(value) {
-  return normalizeEndpoint(value || process.env.NESSIE_MCP_ENDPOINT || process.env.NESSIE_ENDPOINT || DEFAULT_MCP_ENDPOINT);
-}
-
-function normalizeEndpoint(value) {
-  return String(value || DEFAULT_MCP_ENDPOINT).trim().replace(/\/+$/, "");
-}
-
 async function postSetupJson(url, body) {
   return withTimeout(async (signal) => {
     const response = await fetch(url, {
@@ -309,16 +291,16 @@ function resolveApiKeyFromMcpServer(server) {
 
 function resolveEnvRefs(value) {
   if (typeof value !== "string") return value;
-  return value.replace(/\$\{([^}]+)\}/g, (_match, name) => {
-    const envValue = process.env[name];
-    if (!envValue) {
-      throw new Error(`Environment variable ${name} is not set.`);
-    }
-    return envValue;
-  });
+  if (value !== "${NESSIE_API_KEY}") return value;
+
+  const apiKey = process.env.NESSIE_API_KEY;
+  if (!apiKey) {
+    throw new Error("Environment variable NESSIE_API_KEY is not set.");
+  }
+  return apiKey;
 }
 
-async function writeOpenClawConfig({ apiKey, configPath, mcpEndpoint }) {
+async function writeOpenClawConfig({ apiKey, configPath }) {
   const resolvedPath = await resolveOpenClawConfigPath(configPath);
   const { dirname } = await import("node:path");
   const fs = await import("node:fs/promises");
@@ -327,18 +309,21 @@ async function writeOpenClawConfig({ apiKey, configPath, mcpEndpoint }) {
   const next = {
     ...(existing && typeof existing === "object" ? existing : {}),
   };
+  const existingPluginEntry = next.plugins?.entries?.[PLUGIN_ID];
+  const {
+    config: _removedPluginConfig,
+    ...preservedPluginEntry
+  } = existingPluginEntry && typeof existingPluginEntry === "object"
+    ? existingPluginEntry
+    : {};
 
   next.plugins = {
     ...(next.plugins && typeof next.plugins === "object" ? next.plugins : {}),
     entries: {
       ...(next.plugins?.entries && typeof next.plugins.entries === "object" ? next.plugins.entries : {}),
       [PLUGIN_ID]: {
-        ...(next.plugins?.entries?.[PLUGIN_ID] && typeof next.plugins.entries[PLUGIN_ID] === "object" ? next.plugins.entries[PLUGIN_ID] : {}),
+        ...preservedPluginEntry,
         enabled: true,
-        config: {
-          ...(next.plugins?.entries?.[PLUGIN_ID]?.config && typeof next.plugins.entries[PLUGIN_ID].config === "object" ? next.plugins.entries[PLUGIN_ID].config : {}),
-          endpoint: resolveMcpEndpoint(mcpEndpoint),
-        },
       },
     },
   };
@@ -350,7 +335,6 @@ async function writeOpenClawConfig({ apiKey, configPath, mcpEndpoint }) {
       [MCP_SERVER_NAME]: buildNessieMcpServerConfig({
         existing: next.mcp?.servers?.[MCP_SERVER_NAME],
         apiKey,
-        endpoint: mcpEndpoint,
       }),
     },
   };
@@ -363,7 +347,7 @@ async function writeOpenClawConfig({ apiKey, configPath, mcpEndpoint }) {
   return resolvedPath;
 }
 
-function buildNessieMcpServerConfig({ existing, apiKey, endpoint }) {
+function buildNessieMcpServerConfig({ existing, apiKey }) {
   const existingServer = existing && typeof existing === "object" && !Array.isArray(existing) ? existing : {};
   const existingHeaders = existingServer.headers && typeof existingServer.headers === "object" && !Array.isArray(existingServer.headers)
     ? existingServer.headers
@@ -374,7 +358,7 @@ function buildNessieMcpServerConfig({ existing, apiKey, endpoint }) {
   return {
     ...existingServer,
     transport: "streamable-http",
-    url: resolveMcpEndpoint(endpoint),
+    url: DEFAULT_MCP_ENDPOINT,
     headers: {
       ...preservedHeaders,
       Authorization: `Bearer ${apiKey}`,
@@ -384,7 +368,6 @@ function buildNessieMcpServerConfig({ existing, apiKey, endpoint }) {
 
 async function resolveOpenClawConfigPath(value) {
   if (value) return value;
-  if (process.env.OPENCLAW_CONFIG_PATH) return process.env.OPENCLAW_CONFIG_PATH;
   const { join } = await import("node:path");
   const { homedir } = await import("node:os");
   return join(homedir(), ".openclaw", "openclaw.json");

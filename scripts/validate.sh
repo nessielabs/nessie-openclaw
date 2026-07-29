@@ -52,6 +52,10 @@ for method in ["api-key", "otp"]:
         raise SystemExit(f"openclaw.plugin.json setup authMethods must include {method}")
 if "contracts" in manifest or "toolMetadata" in manifest:
     raise SystemExit("openclaw.plugin.json must not mirror hosted MCP tool contracts")
+if "endpoint" in manifest.get("uiHints", {}):
+    raise SystemExit("openclaw.plugin.json must not expose an endpoint UI override")
+if "endpoint" in manifest.get("configSchema", {}).get("properties", {}):
+    raise SystemExit("openclaw.plugin.json must not expose an endpoint config override")
 
 runtime = (root / "index.js").read_text(encoding="utf-8")
 runtime_version = re.search(r'const\s+PLUGIN_VERSION\s*=\s*"([^"]+)"', runtime)
@@ -79,6 +83,24 @@ for needle in [
 for forbidden in ["registerTool", "client.callTool", "toolDefinitions"]:
     if forbidden in runtime:
         raise SystemExit(f"index.js must not mirror MCP tools via {forbidden}")
+for forbidden in [
+    "NESSIE_SETUP_ENDPOINT",
+    "NESSIE_MCP_ENDPOINT",
+    "NESSIE_ENDPOINT",
+    "OPENCLAW_CONFIG_PATH",
+    '--endpoint <url>',
+    '--mcp-endpoint <url>',
+]:
+    if forbidden in runtime:
+        raise SystemExit(f"index.js must not expose configurable endpoints via {forbidden}")
+env_names = set(re.findall(r"process\.env\.([A-Za-z_][A-Za-z0-9_]*)", runtime))
+if env_names != {"NESSIE_API_KEY"}:
+    raise SystemExit(
+        "index.js may only read process.env.NESSIE_API_KEY; "
+        f"found {sorted(env_names)}"
+    )
+if re.search(r"process\.env\s*\[", runtime):
+    raise SystemExit("index.js must not use dynamic process.env access")
 
 skill = (root / "skills/nessie/SKILL.md").read_text(encoding="utf-8")
 skill_version = re.search(r"^version:\s*(\S+)\s*$", skill, re.MULTILINE)
