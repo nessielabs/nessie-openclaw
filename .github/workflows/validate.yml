@@ -33,6 +33,7 @@ jobs:
             constructor(name) {
               this.name = name;
               this.children = new Map();
+              this.options = [];
             }
 
             command(name) {
@@ -46,7 +47,8 @@ jobs:
               return this;
             }
 
-            option() {
+            option(flags) {
+              this.options.push(flags);
               return this;
             }
 
@@ -76,8 +78,18 @@ jobs:
             throw new Error("missing CLI registrar");
           }
           await cliRegistrar({ program });
-          if (!program.children.get("nessie")?.children.get("init")) {
+          const initCommand = program.children.get("nessie")?.children.get("init");
+          if (!initCommand) {
             throw new Error("missing openclaw nessie init command");
+          }
+          if (!initCommand.options.some((flags) => flags.startsWith("--email "))) {
+            throw new Error("missing email OTP option");
+          }
+          if (!initCommand.options.some((flags) => flags.startsWith("--code "))) {
+            throw new Error("missing OTP code option");
+          }
+          if (initCommand.options.some((flags) => flags.startsWith("--api-key "))) {
+            throw new Error("manual API-key option is still registered");
           }
           if (!program.children.get("nessie")?.children.get("status")) {
             throw new Error("missing openclaw nessie status command");
@@ -138,11 +150,13 @@ jobs:
           }, null, 2));
 
           const originalFetch = globalThis.fetch;
-          globalThis.fetch = async (_url, init = {}) => {
+          globalThis.fetch = async (url, init = {}) => {
             const body = JSON.parse(init.body || "{}");
-            const result = body.method === "initialize"
-              ? { jsonrpc: "2.0", id: body.id, result: { protocolVersion: "2025-03-26", capabilities: {}, serverInfo: { name: "fake", version: "0.0.0" } } }
-              : { jsonrpc: "2.0", id: body.id, result: { tools: [] } };
+            const result = String(url).endsWith("/auth/otp/verify")
+              ? { api_key: "sk_nes_v1_rotated" }
+              : body.method === "initialize"
+                ? { jsonrpc: "2.0", id: body.id, result: { protocolVersion: "2025-03-26", capabilities: {}, serverInfo: { name: "fake", version: "0.0.0" } } }
+                : { jsonrpc: "2.0", id: body.id, result: { tools: [] } };
             return {
               ok: true,
               status: 200,
@@ -170,9 +184,9 @@ jobs:
           });
           await cliRegistrar({ program });
           await program.children.get("nessie").children.get("init").actionFn({
-            apiKey: "sk_nes_v1_rotated",
+            email: "user@example.com",
+            code: "123456",
             config: configPath,
-            mcpEndpoint: "https://mcp.nessielabs.com/mcp",
             json: true,
           });
           globalThis.fetch = originalFetch;
