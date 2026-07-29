@@ -1,11 +1,33 @@
 {
   "id": "nessie-openclaw",
   "name": "Nessie",
-  "description": "OpenClaw OAuth setup helper and skill guidance for the hosted Nessie MCP server.",
-  "version": "0.1.23",
+  "description": "OpenClaw setup helper and skill guidance for the hosted Nessie MCP server.",
+  "version": "0.1.22",
   "skills": [
     "skills/nessie"
   ],
+  "setup": {
+    "providers": [
+      {
+        "id": "nessie",
+        "authMethods": [
+          "api-key",
+          "otp"
+        ],
+        "envVars": [
+          "NESSIE_API_KEY"
+        ]
+      }
+    ]
+  },
+  "uiHints": {
+    "apiKey": {
+      "label": "Nessie API key",
+      "sensitive": true,
+      "placeholder": "sk_nes_v1_...",
+      "help": "Created by openclaw nessie init. The setup command stores this in mcp.servers.nessie.headers.Authorization."
+    }
+  },
   "configSchema": {
     "type": "object",
     "additionalProperties": false,

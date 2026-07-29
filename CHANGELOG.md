@@ -4,12 +4,6 @@ All notable changes to `@nessielabs/nessie-openclaw` are documented here. This
 project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html); each
 release is tagged `vX.Y.Z` on the commit that carries that version.
 
-## 0.1.23 - 2026-07-29
-
-- Security: replace Nessie API-key and email-OTP setup with native MCP OAuth,
-  scrub legacy credential config during migration, and remove the MCP SDK
-  runtime dependency.
-
 ## 0.1.22 - 2026-07-29
 
 - Security: make Nessie read-only by default and require an exact preview plus

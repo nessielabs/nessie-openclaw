@@ -9,8 +9,8 @@
 ## Compatibility
 
 - [ ] OpenClaw detects this as a native plugin
-- [ ] OpenClaw projects the hosted Nessie MCP tools
-- [ ] Plugin config uses native MCP OAuth without storing credentials in `openclaw.json`
+- [ ] Native plugin runtime registers Nessie tools
+- [ ] Plugin config supports Nessie API-key auth without storing plaintext by default
 - [ ] Bundled skill instructions match the native Nessie tool surface
 - [ ] Hosted Nessie API contract changes are called out, if any
 
