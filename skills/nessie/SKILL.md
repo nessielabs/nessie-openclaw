@@ -1,7 +1,7 @@
 ---
 name: nessie
 description: Search and read the user's Nessie context library from OpenClaw through hosted MCP.
-version: 0.1.20
+version: 0.1.21
 metadata:
   openclaw:
     homepage: https://github.com/nessielabs/nessie-openclaw
@@ -196,6 +196,26 @@ your call: when a hybrid search on a proper noun comes back thin or empty, rerun
 it with `literal: true` before concluding Nessie has nothing - that under-return
 is a search-mode artifact, not absence of data.
 
+Searching for multiple ideas: do not pack alternatives into one query. A
+query like `database migration OR onboarding OR pricing` under-returns
+because ranking buries every branch after the first under the leading
+term's matches. Run one `nessie_grep` per idea (`database migration`, then
+`onboarding feedback`, then `pricing discussion`) and read across the
+results.
+
+Searching for exact wording, names, or identifiers: pass `literal: true` -
+exact match, e.g. `PROJ-421`, `parseConfigFile`, `ship the beta by Friday`.
+
+Boolean queries on this hosted surface: `OR` is reliable when every
+operand is quoted, and only then - `"roadmap" OR "launch plan"` is a
+dependable union, but bare `roadmap OR launch plan` degrades to soft
+matching where the first term dominates. To require several phrases, list
+them space-separated (`"invoice" "refund"` - implicit AND); do not write
+the `AND` keyword, whose handling varies by engine. Negation is not
+reliable: the semantic channel embeds the whole query, so `-term` still
+surfaces matching content, and `NOT` is not honored. When results look
+thin, raise the limit or split the query - do not add operators.
+
 `nessie_grep` and `nessie_ls` default to `owner: "all_readable"` — the user's
 own sources plus team-shared. Pass `current_user` / `me` to narrow to the
 authenticated user's own sources, `owner: "team"` for explicit team-wide scope
@@ -328,6 +348,20 @@ integration root and `ownerUserId`, then call `nessie_grep` with
 is available, and date-only `since` / `until` plus `timezone`. `nessie_ls` can
 be used with the same owner and `parentId` to browse recent children instead of
 searching when the request is navigational.
+
+For "what is <teammate> working on" questions, enumerate their recent
+activity before searching by topic. `nessie_ls` with only an owner scope
+lists integration roots, whose timestamps describe the root, not the
+freshest conversation inside. Pass the most recently active roots as
+`parentId` to list the teammate's actual conversations - children listings
+return newest first, so the first page is their latest activity - and
+`nessie_tail` the newest few. A `since`/`until` filter further bounds the
+window when you need a specific period. Only then run topic searches - and do not seed
+the topic terms solely from profile or check-in priors about the person (a
+new teammate is not onboarding-only); prior-seeded queries confirm what you
+already believed and miss their actual latest work. Search both their owner
+scope and the `all_readable` default, since a person's work is often
+discussed in other people's sessions.
 
 Use `owner: { email: "..." }` only when that email appears in team member
 metadata; otherwise email selectors return a clear error instead of silently
