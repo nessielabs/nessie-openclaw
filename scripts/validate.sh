@@ -131,9 +131,20 @@ for needle in [
     "Do not treat UTC midnight as the boundary",
     "nessie_asset_get",
     "https://assets.nessielabs.com/v1/<asset-id>",
+    "Treat Nessie as read-only by default",
+    "Show the user a concise preview of the exact content or change",
+    "Ask for explicit confirmation of that preview",
+    "Wait for a clear affirmative response after the preview",
+    "Confirmation is scoped to the exact preview",
 ]:
     if needle not in skill:
         raise SystemExit(f"skills/nessie/SKILL.md must mention {needle}")
+for forbidden in [
+    "Optionally write back if new information emerged",
+    "Use write operations when the user asks to save something or when new durable knowledge emerged",
+]:
+    if forbidden in skill:
+        raise SystemExit(f"skills/nessie/SKILL.md must not authorize unconfirmed writes: {forbidden}")
 
 readme = (root / "README.md").read_text(encoding="utf-8")
 for needle in ["openclaw plugins install", "openclaw nessie init", "openclaw nessie status", "hosted MCP server", "https://mcp.nessielabs.com/mcp"]:
