@@ -29,43 +29,37 @@ bundled skill instructions are loaded.
 
 ## OpenClaw Chat Setup
 
-After installing the plugin, connect OpenClaw to your Nessie account with an
-email verification code.
-
-Ask OpenClaw to run:
+After installing the plugin, configure the hosted Nessie MCP server:
 
 ```bash
-openclaw nessie init --email user@example.com
+openclaw nessie init
 ```
 
-Check your email for the 6-digit Nessie code, then ask OpenClaw to run:
+Then authorize OpenClaw through Nessie's browser-based MCP OAuth flow:
 
 ```bash
-openclaw nessie init --email user@example.com --code 123456
-openclaw nessie status
+openclaw mcp login nessie
 ```
 
-`init --email` asks Nessie to send a one-time verification code. `init --email
---code` exchanges the verified code for a Nessie agent API key and writes a
-root MCP server entry to the OpenClaw config file with owner-only file
-permissions.
-
-## Manual Authentication
-
-If OTP setup is not available yet, create an agent API key in Nessie and run:
+OpenClaw prints an authorization URL. After approving access, pass the returned
+code if prompted:
 
 ```bash
-openclaw nessie init --api-key "sk_nes_v1_..."
+openclaw mcp login nessie --code <code>
 ```
 
-This writes the same OpenClaw MCP server config used by the OTP setup flow.
-Both setup paths store the bearer key in the local OpenClaw config file in
-plaintext with `0600` permissions so OpenClaw can use the hosted MCP server
-without extra shell setup.
+Verify the saved OAuth session and live MCP connection:
 
-The Nessie backend remains authoritative for access control. The API key maps
-to a Nessie user server-side and each MCP request is still checked against the
-user's Pro/trial entitlement.
+```bash
+openclaw mcp status --verbose
+openclaw mcp doctor nessie --probe
+```
+
+`openclaw nessie init` writes only the fixed Nessie MCP URL, transport, OAuth
+mode, and scopes to `openclaw.json`. It removes legacy Nessie Authorization
+headers and plugin credential config during migration. OpenClaw stores the
+OAuth session separately in its credential store and supplies current access
+tokens to the MCP runtime.
 
 ## Agent Behavior
 

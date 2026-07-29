@@ -1,8 +1,8 @@
 {
   "name": "@nessielabs/nessie-openclaw",
-  "version": "0.1.22",
+  "version": "0.1.23",
   "type": "module",
-  "description": "OpenClaw setup helper and skill guidance for hosted Nessie MCP.",
+  "description": "OpenClaw OAuth setup helper and skill guidance for hosted Nessie MCP.",
   "license": "MIT-0",
   "homepage": "https://nessielabs.com",
   "repository": {
@@ -22,23 +22,17 @@
     "validate": "bash scripts/validate.sh",
     "prepare": "git rev-parse --git-dir > /dev/null 2>&1 && git config core.hooksPath scripts/hooks || true"
   },
-  "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.29.0"
-  },
   "openclaw": {
     "extensions": [
       "./index.js"
     ],
     "compat": {
-      "pluginApi": ">=2026.4.25",
-      "minGatewayVersion": "2026.4.25"
+      "pluginApi": ">=2026.6.5",
+      "minGatewayVersion": "2026.6.5"
     },
     "build": {
-      "openclawVersion": "2026.4.25",
-      "pluginSdkVersion": "2026.4.25"
+      "openclawVersion": "2026.6.5",
+      "pluginSdkVersion": "2026.6.5"
     }
-  },
-  "overrides": {
-    "@hono/node-server": "^2.0.5"
   }
 }
