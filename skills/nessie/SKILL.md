@@ -1,7 +1,7 @@
 ---
 name: nessie
 description: Search and read the user's Nessie context library from OpenClaw through hosted MCP.
-version: 0.1.22
+version: 0.1.23
 metadata:
   openclaw:
     homepage: https://github.com/nessielabs/nessie-openclaw
@@ -353,11 +353,10 @@ For "what is <teammate> working on" questions, enumerate their recent
 activity before searching by topic. `nessie_ls` with only an owner scope
 lists integration roots, whose timestamps describe the root, not the
 freshest conversation inside. Pass the most recently active roots as
-`parentId` to list the teammate's actual conversations - but do not assume
-the listing order is recency: children of a normal parent come back
-name-ordered on this surface. Bound the listing with `since`/`until`, or
-sort the returned rows by their update time, then `nessie_tail` the newest
-few. Only then run topic searches - and do not seed
+`parentId` to list the teammate's actual conversations - children listings
+return newest first, so the first page is their latest activity - and
+`nessie_tail` the newest few. A `since`/`until` filter further bounds the
+window when you need a specific period. Only then run topic searches - and do not seed
 the topic terms solely from profile or check-in priors about the person (a
 new teammate is not onboarding-only); prior-seeded queries confirm what you
 already believed and miss their actual latest work. Search both their owner
