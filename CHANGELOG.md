@@ -4,6 +4,11 @@ All notable changes to `@nessielabs/nessie-openclaw` are documented here. This
 project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html); each
 release is tagged `vX.Y.Z` on the commit that carries that version.
 
+## 0.1.22 - 2026-07-29
+
+- Security: make Nessie read-only by default and require an exact preview plus
+  explicit user confirmation before every persistent write.
+
 ## 0.1.21 - 2026-07-29
 
 - Skill: recency-first teammate search (enumerate root children, not roots), no prior-seeded topic terms, and per-surface search operator semantics - from the first Hermes field test.

@@ -1,7 +1,7 @@
 ---
 name: nessie
 description: Search and read the user's Nessie context library from OpenClaw through hosted MCP.
-version: 0.1.21
+version: 0.1.22
 metadata:
   openclaw:
     homepage: https://github.com/nessielabs/nessie-openclaw
@@ -120,13 +120,15 @@ On every Nessie invocation, follow this loop:
 2. Respond with Nessie context. Use what you found to inform the answer.
    Surface relationships, prior discussions, and cross-references the user may
    have forgotten.
-3. Optionally write back if new information emerged. After the exchange, if the
-   conversation produced durable new knowledge, update the relevant context,
-   create a new context, or update the profile when those tools are available
-   and appropriate.
+3. Offer write-back when new information emerged. If the conversation produced
+   durable new knowledge, explain what could be saved and where, but do not
+   create or update anything until the user approves the exact write after
+   seeing a preview.
 
 Frame write-back as helpful continuity, not maintenance the user has to
 remember: "I can save this back to Nessie so future sessions can pick it up."
+This is an offer, not permission to write. Follow the write-safety confirmation
+rules below before making any persistent change.
 
 ## Source Discovery and Search
 
@@ -474,11 +476,12 @@ account email, integration display name, or machine label; use returned
 6. Teammate or shared-team work: resolve the owner first with
    `nessie_team_list` or `nessie_integration_list`, then search or list with
    the resolved `owner`.
-7. Reusable synthesis: follow the manual research workflow and create a context
-   only when the user asks for one or the exchange produced durable knowledge
-   worth preserving.
-8. Profile changes: use profile update tools when durable personal facts
-   changed; do not edit profile section nodes as normal contexts.
+7. Reusable synthesis: follow the manual research workflow and offer to create
+   a context when the user asks for one or the exchange produced durable
+   knowledge worth preserving. Preview and confirm the write before creating it.
+8. Profile changes: offer a profile update when durable personal facts changed,
+   then preview and confirm the write. Do not edit profile section nodes as
+   normal contexts.
 
 ## Query Interpretation
 
@@ -715,8 +718,34 @@ JSON:
   specific chat. This is for conversations only — `nessie_rm` is for contexts, and
   the two are intentionally separate.
 
-Use write operations when the user asks to save something or when new durable
-knowledge emerged and preserving it would help future sessions.
+## Write Safety and Confirmation
+
+Treat Nessie as read-only by default. Do not call any Nessie write tool merely
+because durable knowledge emerged or because preserving it might help a future
+session.
+
+Before every persistent create, edit, move, rename, profile update, or delete:
+
+1. Show the user a concise preview of the exact content or change, the target
+   context, folder, profile, or conversation, and whether that target is
+   personal or team-shared when known.
+2. Ask for explicit confirmation of that preview.
+3. Wait for a clear affirmative response after the preview before calling the
+   write tool.
+4. Perform only the operation or explicitly enumerated batch that was previewed,
+   then report what changed.
+
+An earlier request to "save this," general permission to maintain memory, or a
+previous approval establishes intent but is not the final confirmation. Silence,
+an ambiguous response, and the agent's own judgment are not consent.
+Confirmation is scoped to the exact preview: if the content, destination, target,
+or set of operations changes, show the revised preview and ask again.
+
+This policy applies to all context, folder, profile, and conversation mutations,
+including `nessie_tee`, `nessie_sed`, `nessie_mv`, `nessie_rm`,
+`nessie_mkdir`, `nessie_rename_folder`, `nessie_move_folder`, `nessie_rmdir`,
+profile update tools, and the confirmed deletion step of
+`nessie_delete_conversation`.
 
 Before creating new contexts, search for existing ones on the topic first to
 avoid duplicates. Create a context when no existing context covers the topic or
