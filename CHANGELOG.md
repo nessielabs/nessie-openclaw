@@ -4,9 +4,9 @@ All notable changes to `@nessielabs/nessie-openclaw` are documented here. This
 project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html); each
 release is tagged `vX.Y.Z` on the commit that carries that version.
 
-## 0.1.25 - 2026-07-29
+## 0.1.25 - 2026-07-30
 
-- Republish: version bump to supersede 0.1.24, which stalled in ClawHub's post-publish scan and never listed (same failure mode as 0.1.18). No functional changes.
+- Republish: version bump so the registry's `latest` reflects current main. ClawHub's repaired scan pipeline finalized the previously hidden releases but tagged `latest=0.1.23`; 0.1.24 was consumed by that recovery. No functional changes.
 
 ## 0.1.24 - 2026-07-29
 
