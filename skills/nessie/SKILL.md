@@ -1,7 +1,7 @@
 ---
 name: nessie
 description: Search and read the user's Nessie context library from OpenClaw through hosted MCP.
-version: 0.1.24
+version: 0.1.25
 metadata:
   openclaw:
     homepage: https://github.com/nessielabs/nessie-openclaw
@@ -700,6 +700,8 @@ JSON:
   optional `folderId`, and provenance `sources`
 - `nessie_sed` — edit a context by exact `oldString` / `newString` (unique
   unless `replaceAll`)
+- `nessie_replace_lines` — safely replace a unique block of complete lines with
+  `oldLines` / `newLines`; pass `newLines: []` to delete it
 - `nessie_mv` — move (`to`), rename (`name`), or unfile (`unfiled`) a context
   (pass exactly one)
 - `nessie_rm` — delete a context
@@ -742,10 +744,17 @@ Confirmation is scoped to the exact preview: if the content, destination, target
 or set of operations changes, show the revised preview and ask again.
 
 This policy applies to all context, folder, profile, and conversation mutations,
-including `nessie_tee`, `nessie_sed`, `nessie_mv`, `nessie_rm`,
+including `nessie_tee`, `nessie_sed`, `nessie_replace_lines`, `nessie_mv`, `nessie_rm`,
 `nessie_mkdir`, `nessie_rename_folder`, `nessie_move_folder`, `nessie_rmdir`,
 profile update tools, and the confirmed deletion step of
 `nessie_delete_conversation`.
+
+Prefer `nessie_replace_lines` for complete lines such as Markdown table rows
+and list items. Each array item is one line without a newline character; the
+server owns the separators, so deletion cannot leave an accidental blank line.
+Use `nessie_sed` for inline fragments within a line. After either edit succeeds,
+call `nessie_cat` and verify the changed section; the confirmation line is not a
+content readback.
 
 Before creating new contexts, search for existing ones on the topic first to
 avoid duplicates. Create a context when no existing context covers the topic or
