@@ -6,7 +6,8 @@ release is tagged `vX.Y.Z` on the commit that carries that version.
 
 ## 0.1.25 - 2026-07-31
 
-- Skill: update the bundled Nessie guidance.
+- Skill: prefer structured complete-line context edits for Markdown rows and
+  require a canonical readback after every edit.
 
 ## 0.1.24 - 2026-07-29
 
