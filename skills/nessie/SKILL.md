@@ -1,7 +1,7 @@
 ---
 name: nessie
 description: Search and read the user's Nessie context library from OpenClaw through hosted MCP.
-version: 0.1.25
+version: 0.1.26
 metadata:
   openclaw:
     homepage: https://github.com/nessielabs/nessie-openclaw
@@ -13,11 +13,11 @@ Use Nessie when the user asks about their prior work, decisions, projects,
 saved context, notes, AI conversations, relationships, or anything they may
 have discussed or researched before.
 
-Nessie is the context layer for AI-native work — both the user's own work and
-their team's. It gives agents unified access to what the user (and, in team
-scope, their teammates) already know: saved contexts, generated profile
-sections, raw AI conversation transcripts, and synced source graphs such as
-Obsidian vaults. In OpenClaw, Nessie is available
+Nessie is the context layer for AI-native work — the user's own work plus
+incoming direct and team shares. It gives agents unified access to what the
+user and people sharing with them already know: saved contexts, generated
+profile sections, raw AI conversation transcripts, and synced source graphs
+such as Obsidian vaults. In OpenClaw, Nessie is available
 through the hosted Nessie MCP server configured by the `nessie-openclaw`
 plugin. OpenClaw discovers the available Nessie tools from that hosted MCP
 server.
@@ -33,9 +33,9 @@ agent-access mental model:
 
 > I can use Nessie to browse the sources you have connected, search your past
 > AI conversations and notes, read your saved contexts, and bring that context
-> into this OpenClaw session. In team scope I can do the same across the sources
-> your teammates have shared with you - answer what the team has worked on,
-> decided, or already tried, and read a teammate's actual sessions. You can ask
+> into this OpenClaw session. I can also use sources people have shared with
+> you directly or through a team - answer what collaborators have worked on,
+> decided, or already tried, and read a collaborator's actual sessions. You can ask
 > a question, ask for a brief or memo, or ask me to generate a structured
 > context when you want something reusable.
 
@@ -47,9 +47,8 @@ one powerful capability, not the only way to use Nessie.
 ## Default User Experience
 
 When a user asks what Nessie can do, explain that Nessie gives OpenClaw access
-to the context they and their team have already built. Give normal
-back-and-forth examples, spanning both the user's own work and their team's
-shared sources:
+to the user's own context and incoming direct or team shares. Give normal
+back-and-forth examples spanning both the user's own work and shared sources:
 
 - "What do I know about this topic?"
 - "What did I decide about this project?"
@@ -64,9 +63,9 @@ shared sources:
 - "How did a teammate approach this part of the code?"
 - "Pull my team's shared context on this into the session."
 
-Team examples resolve against the sources teammates have shared with the user;
-keep first-person questions scoped to the user and widen to team-shared sources
-for the team-oriented ones. Do not frame context generation as the only or
+Collaboration examples resolve only against sources explicitly shared with the
+user. Keep first-person questions scoped to the user and widen to the
+appropriate incoming share path for collaborative questions. Do not frame context generation as the only or
 default thing the user should ask for. Many requests are answered through
 research, source-reading, and back-and-forth synthesis in the agent session;
 context generation is for deeper or reusable outputs.
@@ -138,17 +137,22 @@ Use `nessie_ls` for source discovery and hierarchy traversal:
   `Contexts` root (a `nessie_folder`) that groups the user's top-level contexts
   and folders, and a virtual `Chats` root (also a `nessie_folder`) that groups
   the user's in-app (Nessie-native) chats; open either by passing its id as
-  `parentId`, and `nessie_cat` a chat to read the conversation
+  `parentId`, and `nessie_cat` a chat to read the conversation. A directly
+  shared session may itself be a readable root, so preserve its returned node
+  kind rather than assuming every shared root is an integration. Under
+  `all_readable` / `shared`, the Contexts root also lists incoming collaborative
+  folders, whose nested items preserve their actual owners
 - pass `sourceType` as `all`, `context`, `transcript`, `profile`, `obsidian`,
   or `granola` to scope the overview
 - `nessie_ls` defaults to `owner: "all_readable"` — everything the user can
-  read, their own sources plus team-shared. Pass `current_user` / `me` to
+  read, their own sources plus incoming direct and team shares. Pass
+  `current_user` / `me` to
   narrow to the authenticated user's own sources for first-person questions,
-  `owner: "team"` for explicit team-wide scope, or an explicit `{ userId }` /
-  `{ email }` for a specific teammate. For named teammates, prefer
-  `nessie_team_list` or `nessie_integration_list`, then pass the member
-  `userId` / resource `ownerUserId` as `owner: { userId: "..." }`. `{ email }`
-  resolves only from existing team member email metadata.
+  `owner: "direct_shared"` for peer-to-peer grants, `owner: "team_shared"` for
+  team-derived grants, `owner: "shared"` for both incoming paths, or an
+  explicit `{ userId }` / `{ email }` for a specific source owner. `team` is a
+  compatibility alias for `team_shared`. Resolve named collaborators with
+  `nessie_integration_list`; use `nessie_team_list` for team-derived work
 - pass `parentId` to list direct children of a folder-like node, such as an
   Obsidian vault or folder
 - ids from this connector are UUIDs; roots synced from the user's other
@@ -160,14 +164,14 @@ Use `nessie_ls` for source discovery and hierarchy traversal:
 - use returned `id`, `kind`, `sourceType`, `path` or `sourceId`, child counts,
   `sourceOwner`, and affordances to decide whether to read, search, or traverse
   further
-- when one of the user's own sources is shared with their team, its row carries
+- when one of the user's own integration roots, folders, or contexts has an
+  outgoing grant, its row can carry
   a `shared` column (and a `sharedWith` field) whose value is a bounded headline
-  of the audience — a team name, `<team> admins`, a teammate, or `+N` when there
+  of personal and team audiences — a team name, `<team> admins`, a person, or `+N` when there
   are more. A context inside a shared folder inherits that folder's audience, so
-  it is not blank.
-  The column is present only when something in the listing is shared out, so a
-  missing `shared` column means none of these sources are shared, not that
-  sharing is unknown
+  it is not blank. A directly shared conversation or agent session does not
+  expose an outgoing-grant column, so a missing `shared` column is not evidence
+  that such a session is unshared
 
 Use source browsing before search when the user asks what is available, wants
 to inspect a vault or folder, or is unsure which source world contains the
@@ -219,10 +223,10 @@ surfaces matching content, and `NOT` is not honored. When results look
 thin, raise the limit or split the query - do not add operators.
 
 `nessie_grep` and `nessie_ls` default to `owner: "all_readable"` — the user's
-own sources plus team-shared. Pass `current_user` / `me` to narrow to the
-authenticated user's own sources, `owner: "team"` for explicit team-wide scope
-(the same shared scope the default already covers), and explicit `{ userId }`
-or `{ email }` objects for a specific teammate's sources.
+own sources plus incoming direct and team shares. Pass `current_user` / `me` to
+narrow to the authenticated user's own sources, `owner: "direct_shared"`,
+`owner: "team_shared"`, or `owner: "shared"` to select incoming grant paths,
+and explicit `{ userId }` or `{ email }` objects for a specific source owner.
 
 Do not default every discovery or knowledge request to `type: "context"`.
 Choose `type` from the user's intent: use `context` for synthesized
@@ -305,30 +309,71 @@ position, treat the agent's text as proposals and scaffolding and the user's
 words as what actually holds. Do not mistake the shape the agent sketched for
 the shape the user chose.
 
-## Team and Shared Sources
+## Sharing and Collaboration Semantics
 
-Use `nessie_team_list` and `nessie_integration_list` first for team-shared work.
-This is the MCP equivalent of the CLI `nessie team list` /
-`nessie integration list --status team_remote` resolver path.
+Nessie shares are scoped grants over a source graph, not copied exports.
+Access is additive: removing one personal, team, repository, integration, or
+folder grant does not make an item private when another applicable grant still
+covers it.
+
+An integration grant normally covers every readable child beneath the source.
+Coding integrations can instead share selected repositories, and an individual
+conversation or agent session can be shared directly.
+
+- Unsharing one repository from an all-repositories integration creates a
+  repository exception; other and newly added repositories stay shared.
+- Unsharing a repository from a selected-repositories grant narrows the
+  positive set. Removing the final selected repository ends that grant.
+- Unsharing one session from a shared integration or repository creates a node
+  exception; sibling sessions and the parent scope remain shared.
+- Re-sharing an excluded repository or session restores it. A direct session
+  grant can expose that session without exposing its parent or siblings.
+
+A specific person may receive a personal grant or a team-scoped grant. Personal
+access does not depend on team membership; leaving a team removes team-derived
+access but leaves an independent personal grant intact. Only a source owner
+manages outgoing grants. MCP consumes the resulting effective graph and does
+not expose share or unshare mutations.
+
+Contexts and folders support Viewer and Editor access. Folder grants inherit
+through descendants unless an item has an override or exclusion. Viewers can
+read; Editors can update collaborative context Markdown, title, and emoji.
+Editor folders can contain contexts and folders contributed by several people:
+containment changes, but each node keeps its original owner. Moving or deleting
+a contribution requires Editor access to its current shared-folder ancestry,
+and a folder must be empty across every contributor before deletion.
+
+Private Nessie links identify a node but never grant access. Public context
+links are a separate publishing control and expose only that published context.
+
+A context's provenance may name or badge the traces it was derived from, but
+that metadata does not grant access to those traces. Read a provenance trace
+only when it is independently present in the caller's readable scope.
+Trace content always requires its own explicit grant.
+
+## Incoming Shares and Source Owners
+
+Use `nessie_integration_list` first for incoming shared work. It includes
+directly shared roots as well as integration roots and reports `sharedVia` plus
+owner provenance. Use `nessie_team_list` when the request is specifically
+about team-derived work.
 
 `nessie_team_list` returns readable teams, members, and shared resources.
-`nessie_integration_list` returns connected and team-shared roots with
+`nessie_integration_list` returns connected and incoming shared roots with
 provenance fields such as `teamId`, `teamName`, `ownerUserId`,
-`ownerDisplayName`, `ownerEmail`, `status`, `platform`, and provider labels.
+`ownerDisplayName`, `ownerEmail`, `sharedVia`, `status`, and `platform`. A direct
+sharer need not appear in `nessie_team_list`.
 
-Do not use team-shared roots as the default for first-person questions.
-Team-shared roots are for named teammates or explicitly shared-team scope.
+Do not use incoming shared roots as the default for first-person questions.
 
 Follow this resolver workflow for teammate questions:
 
 1. Decide whether the user is asking about themself, a named teammate, or a
    whole shared team. First-person requests stay in the authenticated user's
    scope.
-2. For a named teammate, call `nessie_team_list` or `nessie_integration_list`
-   before searching. Match the teammate by team member name/email and by shared
-   resource metadata.
-3. Resolve the teammate owner ID from the member `userId` returned by
-   `nessie_team_list` or the resource `ownerUserId` returned by
+2. For a named collaborator, call `nessie_integration_list` before searching;
+   also call `nessie_team_list` when the work is team-derived.
+3. Resolve the source owner ID from the resource `ownerUserId` returned by
    `nessie_integration_list`. That resolved ID is the input owner selector;
    returned `sourceOwner` metadata is what you read back to confirm scope.
 4. Choose the shared integration root or source root that matches the request.
@@ -365,7 +410,7 @@ already believed and miss their actual latest work. Search both their owner
 scope and the `all_readable` default, since a person's work is often
 discussed in other people's sessions.
 
-Use `owner: { email: "..." }` only when that email appears in team member
+Use `owner: { email: "..." }` only when that email appears in readable source
 metadata; otherwise email selectors return a clear error instead of silently
 producing zero results. Do not pass raw owner strings such as `"tiger"` or
 objects shaped as `{ ownerUserId: "..." }`; MCP owner objects use `{ userId }`
@@ -445,17 +490,18 @@ answer the question, list the user's source roots and inspect their personal
 transcript or note roots. Browse or search within those personal roots before
 falling back to broad global search.
 
-Do not use team-shared roots as the default scope for first-person questions.
-Use team and team-shared roots when the user asks about a teammate by name,
-asks about shared team work, or explicitly asks to compare their work with
-someone else's.
+Do not use incoming shared roots as the default scope for first-person questions.
+Use direct or team shares when the user asks about a collaborator by name,
+asks about shared work, or explicitly asks to compare their work with someone
+else's.
 
 When a Nessie tool exposes an `owner` selector, use `current_user` / `me` for
 first-person questions. The discovery and search defaults are `all_readable`
-(own plus team-shared), so explicitly narrow with `current_user` / `me` rather
-than omitting `owner`, or first-person questions silently pull in team-shared
-sources. Pass `owner: { userId: "..." }`, `owner: { email: "..." }`, or
-`owner: "team"` only for teammate-owned sources or explicit shared-team scope. Never infer current-user ownership from provider
+(own plus incoming direct and team shares), so explicitly narrow with
+`current_user` / `me` rather than omitting `owner`, or first-person questions
+silently pull in shared sources. Pass `owner: "direct_shared"`,
+`owner: "team_shared"`, `owner: "shared"`, or an explicit owner object only
+for collaborative scope. Never infer current-user ownership from provider
 account email, integration display name, or machine label; use returned
 `sourceOwner` metadata instead.
 
@@ -719,6 +765,12 @@ JSON:
   `confirm: true` to delete. Use it only when the user explicitly asks to remove a
   specific chat. This is for conversations only — `nessie_rm` is for contexts, and
   the two are intentionally separate.
+
+Context Markdown, title, and emoji are synchronized collaborative fields.
+Owners and Editors can update the same current document through MCP while
+people work in the app; Viewers can only read. Editor shared folders accept
+caller-owned contexts and folders as children, but moving an item does not
+change its owner. Viewer destinations reject creates and moves.
 
 ## Write Safety and Confirmation
 
