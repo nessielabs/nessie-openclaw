@@ -1,7 +1,7 @@
 ---
 name: nessie
 description: Search and read the user's Nessie context library from OpenClaw through hosted MCP.
-version: 0.1.26
+version: 0.1.27
 metadata:
   openclaw:
     homepage: https://github.com/nessielabs/nessie-openclaw
@@ -744,8 +744,10 @@ JSON:
 
 - `nessie_tee` — create a context with `title`, `markdown`, optional `emoji`,
   optional `folderId`, and provenance `sources`
-- `nessie_sed` — edit a context by exact `oldString` / `newString` (unique
-  unless `replaceAll`)
+- `nessie_sed` — edit one context with `replacements`, an ordered array of
+  1–100 `{ oldString, newString, replaceAll? }` changes. Each match must be
+  unique unless that replacement sets `replaceAll`; later replacements see
+  earlier results, and if any replacement is invalid, none are applied
 - `nessie_replace_lines` — safely replace a unique block of complete lines with
   `oldLines` / `newLines`; pass `newLines: []` to delete it
 - `nessie_mv` — move (`to`), rename (`name`), or unfile (`unfiled`) a context
@@ -807,6 +809,11 @@ server owns the separators, so deletion cannot leave an accidental blank line.
 Use `nessie_sed` for inline fragments within a line. After either edit succeeds,
 call `nessie_cat` and verify the changed section; the confirmation line is not a
 content readback.
+
+When one request contains multiple inline edits to the same context, put every
+edit in one `nessie_sed` `replacements` array. Do not split them into separate
+tool calls. Preview and confirm the complete batch together before calling the
+tool.
 
 Before creating new contexts, search for existing ones on the topic first to
 avoid duplicates. Create a context when no existing context covers the topic or
