@@ -1,7 +1,7 @@
 ---
 name: nessie
 description: Search and read the user's Nessie context library from OpenClaw through hosted MCP.
-version: 0.1.27
+version: 0.1.28
 metadata:
   openclaw:
     homepage: https://github.com/nessielabs/nessie-openclaw
@@ -17,7 +17,8 @@ Nessie is the context layer for AI-native work — the user's own work plus
 incoming direct and team shares. It gives agents unified access to what the
 user and people sharing with them already know: saved contexts, generated
 profile sections, raw AI conversation transcripts, and synced source graphs
-such as Obsidian vaults. In OpenClaw, Nessie is available
+such as Obsidian vaults. It can also report token-usage analytics derived from
+imported coding sessions. In OpenClaw, Nessie is available
 through the hosted Nessie MCP server configured by the `nessie-openclaw`
 plugin. OpenClaw discovers the available Nessie tools from that hosted MCP
 server.
@@ -56,6 +57,7 @@ back-and-forth examples spanning both the user's own work and shared sources:
 - "Show me what sources Nessie has available."
 - "Search my Obsidian notes about this project."
 - "What have I already tried for this bug?"
+- "How many tokens did my coding agents use this month?"
 - "Use what I know from Nessie and help me draft this reply."
 - "What has my team been working on this week?"
 - "What did a teammate decide about this project, and why?"
@@ -69,6 +71,19 @@ appropriate incoming share path for collaborative questions. Do not frame contex
 default thing the user should ask for. Many requests are answered through
 research, source-reading, and back-and-forth synthesis in the agent session;
 context generation is for deeper or reusable outputs.
+
+## Usage Analytics
+
+Use `nessie_analytics` for questions about token or request usage. It returns
+the canonical dashboard JSON: current and previous reporting periods,
+per-provider/model request and token counts, integration breakdowns, and trend
+buckets. Input, cache-read, cache-write, output, and reasoning token categories
+remain separate. It defaults to the authenticated user's trailing 30 days in
+UTC day buckets; pass the user's IANA `timezone` when known. `teamId` requires
+creator/admin access to that team and adds per-person breakdowns; `trendUserId`
+selects one team member's trend. Usage is attributed to each imported session's
+creation time rather than the exact time of each model request, and the response
+states that rule in `attribution`.
 
 ## Check-In
 

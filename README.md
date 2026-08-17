@@ -65,6 +65,7 @@ The bundled skill teaches OpenClaw to:
 - run a Nessie check-in when the user asks for it;
 - search Nessie before answering questions about prior work, decisions,
   projects, conversations, notes, or saved context;
+- answer token-usage questions with Nessie's canonical analytics data;
 - read full sources before making strong claims;
 - create or update Nessie contexts only when the user asks to save durable
   knowledge.

@@ -4,6 +4,11 @@ All notable changes to `@nessielabs/nessie-openclaw` are documented here. This
 project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html); each
 release is tagged `vX.Y.Z` on the commit that carries that version.
 
+## 0.1.28 - 2026-08-17
+
+- Skill: teach OpenClaw to answer token-usage questions with the hosted
+  `nessie_analytics` tool.
+
 ## 0.1.27 - 2026-08-06
 
 - Skill: batch multiple inline edits to one context in a single ordered,
