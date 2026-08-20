@@ -1,7 +1,7 @@
 ---
 name: nessie
 description: Search and read the user's Nessie context library from OpenClaw through hosted MCP.
-version: 0.1.27
+version: 0.1.28
 metadata:
   openclaw:
     homepage: https://github.com/nessielabs/nessie-openclaw
@@ -155,6 +155,12 @@ Use `nessie_ls` for source discovery and hierarchy traversal:
   `nessie_integration_list`; use `nessie_team_list` for team-derived work
 - pass `parentId` to list direct children of a folder-like node, such as an
   Obsidian vault or folder
+- pass `name` for a folder or context named by the user. It performs a
+  case-insensitive node-name substring match before pagination, so named
+  artifacts do not disappear merely because they sort beyond page one
+- every result begins with the displayed range and total. When it reports a
+  `nextOffset`, call `nessie_ls` again with `offset: nextOffset`; do not conclude
+  that a node is absent until the listing is exhausted
 - ids from this connector are UUIDs; roots synced from the user's other
   devices under one API key list as a single combined entry keyed by a
   representative root's UUID. The local Nessie CLI and app print such groups
