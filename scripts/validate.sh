@@ -103,6 +103,17 @@ if not skill_version:
     raise SystemExit("skills/nessie/SKILL.md must declare version frontmatter")
 if skill_version.group(1) != package_version:
     raise SystemExit("skills/nessie/SKILL.md version must match package.json version")
+
+pointer_path = root / "skill-version.json"
+if not pointer_path.is_file():
+    raise SystemExit("skill-version.json update pointer is required")
+pointer = json.loads(pointer_path.read_text(encoding="utf-8"))
+if pointer.get("version") != package_version:
+    raise SystemExit("skill-version.json version must match package.json version")
+if pointer.get("skillUrl") != "https://raw.githubusercontent.com/nessielabs/nessie-openclaw/main/skills/nessie/SKILL.md":
+    raise SystemExit("skill-version.json skillUrl must point at the published SKILL.md")
+if pointer.get("updateCommand") != "openclaw plugins update @nessielabs/nessie-openclaw":
+    raise SystemExit("skill-version.json updateCommand must be the plugin update command")
 for needle in [
     "check-in",
     "search",
