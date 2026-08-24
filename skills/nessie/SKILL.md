@@ -1,7 +1,7 @@
 ---
 name: nessie
 description: Search and read the user's Nessie context library from OpenClaw through hosted MCP.
-version: 0.1.28
+version: 0.1.29
 metadata:
   openclaw:
     homepage: https://github.com/nessielabs/nessie-openclaw
@@ -27,6 +27,23 @@ by OpenClaw over shell commands. Do not apply CLI command tables, shell escaping
 guidance, local sandbox instructions, or local Nessie app requirements to this
 surface. This plugin intentionally does not require the local Nessie app to be
 running.
+
+## Skill Updates
+
+This skill ships inside the `@nessielabs/nessie-openclaw` plugin; OpenClaw owns
+installing and updating it. On the first Nessie use in a session, fetch
+`https://raw.githubusercontent.com/nessielabs/nessie-openclaw/main/skill-version.json`
+and compare its `version` to the `version` in this skill's frontmatter. If the
+fetch fails, skip the check and continue.
+
+If the remote version is newer, tell the user an updated Nessie skill is
+available and, with their agreement, run
+`openclaw plugins update @nessielabs/nessie-openclaw` (or the matching
+`openclaw skills update` for a ClawHub skill install). Do not download or
+overwrite the plugin files yourself — the host command owns the install. If
+the user declines, do not mention the update again until the remote version
+changes. The MCP connector updates itself server-side and never needs this
+check.
 
 When the user says "use Nessie" or asks what Nessie can do, lead with the
 agent-access mental model:
