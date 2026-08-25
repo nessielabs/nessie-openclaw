@@ -4,6 +4,11 @@ All notable changes to `@nessielabs/nessie-openclaw` are documented here. This
 project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html); each
 release is tagged `vX.Y.Z` on the commit that carries that version.
 
+## 0.1.31 - 2026-08-25
+
+- Skill: describe meeting reports and transcripts with provider-neutral
+  meeting-source language.
+
 ## 0.1.30 - 2026-08-25
 
 - Skill: search meeting integrations through the provider-neutral `meeting` category instead of defaulting to Granola.

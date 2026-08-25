@@ -1,7 +1,7 @@
 ---
 name: nessie
 description: Search and read the user's Nessie context library from OpenClaw through hosted MCP.
-version: 0.1.30
+version: 0.1.31
 metadata:
   openclaw:
     homepage: https://github.com/nessielabs/nessie-openclaw
@@ -486,9 +486,9 @@ Source types serve different purposes:
   them when the user refers to notes, vaults, files, memos, source docs, or
   asks for project knowledge that likely lives outside AI transcripts. Preserve
   their path and hierarchy when citing or selecting them.
-- Granola notes are recorded meeting and call material: the meeting summary and
-  its underlying transcript. They are authoritative for what was said in a
-  specific meeting or call - use them when the user asks about a meeting,
+- Meeting sources contain recorded meeting and call material: the meeting
+  report and its underlying transcript. They are authoritative for what was
+  said in a specific meeting or call - use them when the user asks about a meeting,
   standup, interview, or who said what on a call.
 - Profile sections contain structured biographical facts about the user. Check
   the profile for identity, connections, project info, and other recurring
