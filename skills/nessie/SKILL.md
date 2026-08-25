@@ -1,7 +1,7 @@
 ---
 name: nessie
 description: Search and read the user's Nessie context library from OpenClaw through hosted MCP.
-version: 0.1.29
+version: 0.1.30
 metadata:
   openclaw:
     homepage: https://github.com/nessielabs/nessie-openclaw
@@ -160,7 +160,8 @@ Use `nessie_ls` for source discovery and hierarchy traversal:
   `all_readable` / `shared`, the Contexts root also lists incoming collaborative
   folders, whose nested items preserve their actual owners
 - pass `sourceType` as `all`, `context`, `transcript`, `profile`, `obsidian`,
-  or `granola` to scope the overview
+  or `meeting` to scope the overview. Prefer the provider-neutral `meeting`
+  category unless the user explicitly asks for one provider
 - `nessie_ls` defaults to `owner: "all_readable"` — everything the user can
   read, their own sources plus incoming direct and team shares. Pass
   `current_user` / `me` to
@@ -210,7 +211,7 @@ contexts alone may miss them.
 Use `nessie_grep` when you have a concrete query. It returns text blocks — one
 per hit, an `id · kind · owner · date · title` header followed by the matching
 content; copy a hit's id to read the full node with `nessie_cat`. It supports
-`type` values `context`, `transcript`, `profile`, `obsidian`, `granola`, and
+`type` values `context`, `transcript`, `profile`, `obsidian`, `meeting`, and
 `all`. For hierarchy-scoped search, pass `parentId` after discovering the node
 id with `nessie_ls` to restrict the search to that node and its descendants.
 Pass `repos` (canonical repoKeys) to narrow to specific git repos; that filter
@@ -254,7 +255,7 @@ and explicit `{ userId }` or `{ email }` objects for a specific source owner.
 Do not default every discovery or knowledge request to `type: "context"`.
 Choose `type` from the user's intent: use `context` for synthesized
 orientation, `obsidian` for notes, vaults, files, memos, source docs, task
-logs, and journals, `granola` for recorded meetings and calls, `transcript`
+logs, and journals, `meeting` for recorded meetings and calls, `transcript`
 for prior AI conversations and agent resume state, and `all` when several
 source types are plausible.
 
