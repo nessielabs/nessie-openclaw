@@ -4,6 +4,11 @@ All notable changes to `@nessielabs/nessie-openclaw` are documented here. This
 project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html); each
 release is tagged `vX.Y.Z` on the commit that carries that version.
 
+## 0.1.32 - 2026-08-27
+
+- Runtime: label hosted MCP requests as OpenClaw while retaining the shared
+  Nessie endpoint.
+
 ## 0.1.31 - 2026-08-25
 
 - Skill: describe meeting reports and transcripts with provider-neutral
