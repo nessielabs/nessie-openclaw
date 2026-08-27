@@ -75,7 +75,7 @@ for needle in [
     "StreamableHTTPClientTransport",
     "client.listTools",
     "Nessie setup request timed out.",
-    "https://mcp.nessielabs.com/mcp",
+    "https://mcp.nessielabs.com/mcp?client=openclaw",
     "https://nessie-notes-go-843813578359.us-west1.run.app",
 ]:
     if needle not in runtime:
@@ -158,7 +158,7 @@ for forbidden in [
         raise SystemExit(f"skills/nessie/SKILL.md must not authorize unconfirmed writes: {forbidden}")
 
 readme = (root / "README.md").read_text(encoding="utf-8")
-for needle in ["openclaw plugins install", "openclaw nessie init", "openclaw nessie status", "hosted MCP server", "https://mcp.nessielabs.com/mcp"]:
+for needle in ["openclaw plugins install", "openclaw nessie init", "openclaw nessie status", "hosted MCP server", "https://mcp.nessielabs.com/mcp?client=openclaw"]:
     if needle not in readme:
         raise SystemExit(f"README.md must mention {needle}")
 for forbidden in ["NESSIE_API_KEY", "--api-key"]:

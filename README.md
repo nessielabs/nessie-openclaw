@@ -6,7 +6,11 @@ OpenClaw agent to a user's Nessie context library.
 The plugin provides a native OpenClaw setup command and bundled skill guidance
 for Nessie's hosted MCP server. Setup writes `mcp.servers.nessie` into
 OpenClaw config so OpenClaw's MCP client can discover the hosted Nessie tools
-directly from `https://mcp.nessielabs.com/mcp`.
+directly from `https://mcp.nessielabs.com/mcp?client=openclaw`.
+
+The `client=openclaw` marker uses the same hosted MCP route as every other
+Nessie connector. It only provides a bounded client-surface label for usage
+telemetry.
 
 ## Install
 
