@@ -1,7 +1,7 @@
 ---
 name: nessie
 description: Search and read the user's Nessie context library from OpenClaw through hosted MCP.
-version: 0.1.32
+version: 0.1.34
 metadata:
   openclaw:
     homepage: https://github.com/nessielabs/nessie-openclaw
@@ -146,6 +146,50 @@ remember: "I can save this back to Nessie so future sessions can pick it up."
 This is an offer, not permission to write. Follow the write-safety confirmation
 rules below before making any persistent change.
 
+## Session Initiation
+
+Agent-session results may expose two related fields:
+
+- `executionMode` is the raw provider signal, stored unchanged in a
+  provider-owned namespace such as `grok:automation:<task-id>`,
+  `claude-code:sdk`, or `codex:codex_exec`.
+- `initiated` is Nessie's derived, provider-neutral category: `human`, `agent`,
+  or `automation`.
+
+`human` covers directly initiated interactive sessions. `agent` covers
+programmatic agent/orchestrator launches and known provider background work.
+`automation` requires an explicit provider signal or membership beneath an
+automation-definition node; that relationship takes precedence over a generic
+programmatic execution mode. Provider-native child sessions remain excluded.
+No initiation filter means all sessions.
+
+An `initiated` filter on `nessie_ls` applies only to session nodes among the
+current listing's direct children. It does not recurse or retain a container
+just because matching sessions exist beneath it. Before concluding that a
+source has no matching sessions, list it unfiltered, drill into container nodes
+such as automation definitions, and then apply the filter. Use parent-scoped
+`nessie_grep` when the task is a recursive content search. Known non-session
+listings, including the virtual Contexts root, reject an initiation filter
+instead of returning a misleading empty result. Listings containing classified
+sessions add `initiated` and `execution` columns, and `nessie_stat` exposes both
+fields for a classified session.
+
+Combine `initiated` only with `sourceType: "all"` or `"transcript"` on
+`nessie_ls`, and with `type: "all"` or `"transcript"` on `nessie_grep`. An
+initiated grep cannot also use `repos`; if it specifies `kind`, use a
+conversation-node kind.
+
+Treat initiation as launch mechanics, not source ownership or the identity of
+every speaker inside a transcript. When the user asks about human work — for
+example, "what did I work on?", "where did I leave off?", "what did Tiger
+decide?", or a person's recent activity — pass `initiated: "human"` to
+`nessie_ls` or `nessie_grep`. Use `agent` or `automation` when the user
+explicitly asks about those runs. Omit the filter only when they want all
+session activity regardless of who or what started it. Do not guess initiation
+from titles, prompts, machine hosts, cron environment variables, or
+webhook-shaped content; use the derived field and retain `executionMode` when
+raw evidence is useful for debugging.
+
 ## Source Discovery and Search
 
 Use `nessie_ls` for source discovery and hierarchy traversal:
@@ -173,6 +217,9 @@ Use `nessie_ls` for source discovery and hierarchy traversal:
   `nessie_integration_list`; use `nessie_team_list` for team-derived work
 - pass `parentId` to list direct children of a folder-like node, such as an
   Obsidian vault or folder
+- pass `initiated` as `human`, `agent`, or `automation` to filter classified
+  session nodes among those direct children. See Session Initiation above for
+  traversal behavior and valid parameter combinations
 - pass `name` for a folder or context named by the user. It performs a
   case-insensitive node-name substring match before pagination, so named
   artifacts do not disappear merely because they sort beyond page one
@@ -214,6 +261,9 @@ content; copy a hit's id to read the full node with `nessie_cat`. It supports
 `type` values `context`, `transcript`, `profile`, `obsidian`, `meeting`, and
 `all`. For hierarchy-scoped search, pass `parentId` after discovering the node
 id with `nessie_ls` to restrict the search to that node and its descendants.
+Pass `initiated` as `human`, `agent`, or `automation` to restrict transcript
+hits by launch mechanics; parent-scoped `nessie_grep` remains recursive. See
+Session Initiation above for defaults and valid parameter combinations.
 Pass `repos` (canonical repoKeys) to narrow to specific git repos; that filter
 excludes everything not tied to a repo. `nessie_grep` is hybrid (semantic +
 keyword) by default, tuned for fuzzy, conceptual queries, and it under-returns
@@ -596,7 +646,8 @@ treat resume as a workflow over search plus read.
    for framing) and `nessie_tail` for the recent tail (bias longer here, roughly
    the last 25 to 50 lines, since the handoff state lives at the end). If they
    gave a title, project, tool, teammate, date, or workspace, search and browse
-   until you find the matching recent conversation.
+   with `initiated: "human"` until you find the matching recent conversation,
+   unless they explicitly asked to resume an agent or automation run.
 2. Read both the beginning and the end before synthesizing. The beginning
    usually explains the goal and constraints; the end usually contains the
    current state, latest decisions, open blockers, and uncommitted next steps.
@@ -631,8 +682,9 @@ by a context.
 
 For long transcripts or takeover workflows, read `nessie_head` for the framing
 beginning and `nessie_tail` for the recent end rather than loading the whole
-node. Use `nessie_stat` to see a node's metadata (kind, owner, size, dates)
-without its body — to size or inspect a node before reading it.
+node. Use `nessie_stat` to see a node's metadata (kind, owner, size, dates, and,
+for classified sessions, `initiated` plus raw `executionMode`) without its body
+— to size or inspect a node before reading it.
 
 Successful read and discovery responses may include a trailing `cloud sync`
 notice (text, on the filesystem verbs) or a top-level `cloudSyncNotice` object

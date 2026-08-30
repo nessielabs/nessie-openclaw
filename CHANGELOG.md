@@ -4,6 +4,16 @@ All notable changes to `@nessielabs/nessie-openclaw` are documented here. This
 project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html); each
 release is tagged `vX.Y.Z` on the commit that carries that version.
 
+## 0.1.34 - 2026-08-30
+
+- Skill: make session initiation filters discoverable in the list and search
+  reference guidance.
+
+## 0.1.33 - 2026-08-29
+
+- Skill: filter session discovery and resume workflows by human, agent, or
+  automation initiation while preserving raw execution metadata.
+
 ## 0.1.32 - 2026-08-27
 
 - Runtime: label hosted MCP requests as OpenClaw while retaining the shared
