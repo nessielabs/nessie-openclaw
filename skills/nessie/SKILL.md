@@ -1,7 +1,7 @@
 ---
 name: nessie
 description: Search and read the user's Nessie context library from OpenClaw through hosted MCP.
-version: 0.1.33
+version: 0.1.34
 metadata:
   openclaw:
     homepage: https://github.com/nessielabs/nessie-openclaw
@@ -217,6 +217,9 @@ Use `nessie_ls` for source discovery and hierarchy traversal:
   `nessie_integration_list`; use `nessie_team_list` for team-derived work
 - pass `parentId` to list direct children of a folder-like node, such as an
   Obsidian vault or folder
+- pass `initiated` as `human`, `agent`, or `automation` to filter classified
+  session nodes among those direct children. See Session Initiation above for
+  traversal behavior and valid parameter combinations
 - pass `name` for a folder or context named by the user. It performs a
   case-insensitive node-name substring match before pagination, so named
   artifacts do not disappear merely because they sort beyond page one
@@ -258,6 +261,9 @@ content; copy a hit's id to read the full node with `nessie_cat`. It supports
 `type` values `context`, `transcript`, `profile`, `obsidian`, `meeting`, and
 `all`. For hierarchy-scoped search, pass `parentId` after discovering the node
 id with `nessie_ls` to restrict the search to that node and its descendants.
+Pass `initiated` as `human`, `agent`, or `automation` to restrict transcript
+hits by launch mechanics; parent-scoped `nessie_grep` remains recursive. See
+Session Initiation above for defaults and valid parameter combinations.
 Pass `repos` (canonical repoKeys) to narrow to specific git repos; that filter
 excludes everything not tied to a repo. `nessie_grep` is hybrid (semantic +
 keyword) by default, tuned for fuzzy, conceptual queries, and it under-returns
