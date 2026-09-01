@@ -1,7 +1,7 @@
 ---
 name: nessie
 description: Search and read the user's Nessie context library from OpenClaw through hosted MCP.
-version: 0.1.35
+version: 0.1.36
 metadata:
   openclaw:
     homepage: https://github.com/nessielabs/nessie-openclaw
@@ -220,6 +220,11 @@ Memory descriptors use the semantic kinds `native_memory_collection` and
 `workspacePath`, and `repoKey`. During migration, older rows may still report
 `local_folder` or `local_file`; source IDs beginning with `claude-memory` or
 `codex-memory` carry the same native-memory semantics.
+
+During rollout, an older MCP host may reject the `memory` filter even though
+memory nodes are readable. In that case browse the coding-agent integration
+root and recognize source IDs beginning with `claude-memory` or `codex-memory`;
+do not broaden to every `local_file`.
 
 ## Source Discovery and Search
 

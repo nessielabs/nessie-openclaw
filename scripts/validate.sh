@@ -146,6 +146,7 @@ for needle in [
     "## Native Coding-Agent Memory",
     "`native_memory_collection`",
     "`requiresVerification: true`",
+    "older MCP host may reject the `memory` filter",
     "`memory`, or `meeting`",
     "provider-derived project orientation",
     "nessie_asset_get",
