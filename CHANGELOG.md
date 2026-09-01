@@ -4,6 +4,11 @@ All notable changes to `@nessielabs/nessie-openclaw` are documented here. This
 project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html); each
 release is tagged `vX.Y.Z` on the commit that carries that version.
 
+## 0.1.36 - 2026-09-01
+
+- Skill: add read-only native coding-agent memory discovery, verification
+  guidance, and a fallback for older MCP hosts.
+
 ## 0.1.34 - 2026-08-30
 
 - Skill: make session initiation filters discoverable in the list and search

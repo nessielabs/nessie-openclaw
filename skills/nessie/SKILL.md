@@ -1,7 +1,7 @@
 ---
 name: nessie
 description: Search and read the user's Nessie context library from OpenClaw through hosted MCP.
-version: 0.1.34
+version: 0.1.36
 metadata:
   openclaw:
     homepage: https://github.com/nessielabs/nessie-openclaw
@@ -190,6 +190,42 @@ from titles, prompts, machine hosts, cron environment variables, or
 webhook-shaped content; use the derived field and retain `executionMode` when
 raw evidence is useful for debugging.
 
+## Native Coding-Agent Memory
+
+Claude Code and Codex may synthesize project-scoped Markdown memory from prior
+work. Nessie exposes this as the provider-neutral `memory` source type while
+preserving the authoring provider (`claude_code` or `codex`), workspace path,
+and stable repository identity. It is a read-only mirror of what that coding
+agent currently believes about a project. It is not a transcript, user-authored
+note, durable Nessie context, or independent evidence that an event occurred.
+
+Use native memory as a query planner: read it to learn project vocabulary,
+likely decisions, file paths, and promising searches. Then verify every claim
+that matters against current repository files, recent transcripts, or another
+primary source before answering or acting. For resume/takeover requests,
+transcripts remain the authoritative record of what happened and their recent
+tails remain the best handoff state. Never report a native-memory file as a
+session, activity event, decision record, or paid/usage metric.
+
+Keep provider memories separate. A Claude Code memory and a Codex memory about
+the same repo are two provider beliefs, not records to merge automatically.
+Conflicts are useful retrieval signals: surface the disagreement and resolve it
+from primary evidence. Treat native memory as private unless the returned
+source ownership/access metadata explicitly shows otherwise; never infer
+sharing from its repository association alone.
+
+Memory descriptors use the semantic kinds `native_memory_collection` and
+`native_memory`, and may include `sourceType: memory`, `provider`,
+`authority: derived`, `readOnly: true`, `requiresVerification: true`,
+`workspacePath`, and `repoKey`. During migration, older rows may still report
+`local_folder` or `local_file`; source IDs beginning with `claude-memory` or
+`codex-memory` carry the same native-memory semantics.
+
+During rollout, an older MCP host may reject the `memory` filter even though
+memory nodes are readable. In that case browse the coding-agent integration
+root and recognize source IDs beginning with `claude-memory` or `codex-memory`;
+do not broaden to every `local_file`.
+
 ## Source Discovery and Search
 
 Use `nessie_ls` for source discovery and hierarchy traversal:
@@ -204,8 +240,8 @@ Use `nessie_ls` for source discovery and hierarchy traversal:
   `all_readable` / `shared`, the Contexts root also lists incoming collaborative
   folders, whose nested items preserve their actual owners
 - pass `sourceType` as `all`, `context`, `transcript`, `profile`, `obsidian`,
-  or `meeting` to scope the overview. Prefer the provider-neutral `meeting`
-  category unless the user explicitly asks for one provider
+  `memory`, or `meeting` to scope the overview. Prefer the provider-neutral
+  `meeting` category unless the user explicitly asks for one provider
 - `nessie_ls` defaults to `owner: "all_readable"` — everything the user can
   read, their own sources plus incoming direct and team shares. Pass
   `current_user` / `me` to
@@ -258,9 +294,10 @@ contexts alone may miss them.
 Use `nessie_grep` when you have a concrete query. It returns text blocks — one
 per hit, an `id · kind · owner · date · title` header followed by the matching
 content; copy a hit's id to read the full node with `nessie_cat`. It supports
-`type` values `context`, `transcript`, `profile`, `obsidian`, `meeting`, and
-`all`. For hierarchy-scoped search, pass `parentId` after discovering the node
-id with `nessie_ls` to restrict the search to that node and its descendants.
+`type` values `context`, `transcript`, `profile`, `obsidian`, `memory`,
+`meeting`, and `all`. For hierarchy-scoped search, pass `parentId` after
+discovering the node id with `nessie_ls` to restrict the search to that node
+and its descendants.
 Pass `initiated` as `human`, `agent`, or `automation` to restrict transcript
 hits by launch mechanics; parent-scoped `nessie_grep` remains recursive. See
 Session Initiation above for defaults and valid parameter combinations.
@@ -306,8 +343,9 @@ Do not default every discovery or knowledge request to `type: "context"`.
 Choose `type` from the user's intent: use `context` for synthesized
 orientation, `obsidian` for notes, vaults, files, memos, source docs, task
 logs, and journals, `meeting` for recorded meetings and calls, `transcript`
-for prior AI conversations and agent resume state, and `all` when several
-source types are plausible.
+for prior AI conversations and agent resume state, `memory` for
+provider-derived project orientation that will be verified against primary
+evidence, and `all` when several source types are plausible.
 
 Choose the source order from the user's intent, not from a global ranking:
 
