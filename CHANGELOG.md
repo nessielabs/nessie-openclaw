@@ -4,6 +4,10 @@ All notable changes to `@nessielabs/nessie-openclaw` are documented here. This
 project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html); each
 release is tagged `vX.Y.Z` on the commit that carries that version.
 
+## 0.1.35 - 2026-09-01
+
+- Skill: update the bundled Nessie guidance.
+
 ## 0.1.34 - 2026-08-30
 
 - Skill: make session initiation filters discoverable in the list and search
