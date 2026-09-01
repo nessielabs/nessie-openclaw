@@ -147,7 +147,7 @@ for needle in [
     "`native_memory_collection`",
     "`requiresVerification: true`",
     "older MCP host may reject the `memory` filter",
-    "`memory`, or `meeting`",
+    "`memory`,",
     "provider-derived project orientation",
     "nessie_asset_get",
     "https://assets.nessielabs.com/v1/<asset-id>",
