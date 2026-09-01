@@ -6,7 +6,7 @@ release is tagged `vX.Y.Z` on the commit that carries that version.
 
 ## 0.1.36 - 2026-09-01
 
-- Skill: update the bundled Nessie guidance.
+- Skill: add a native-memory discovery fallback for older MCP hosts.
 
 ## 0.1.35 - 2026-09-01
 
