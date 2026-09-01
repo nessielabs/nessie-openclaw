@@ -6,7 +6,8 @@ release is tagged `vX.Y.Z` on the commit that carries that version.
 
 ## 0.1.35 - 2026-09-01
 
-- Skill: update the bundled Nessie guidance.
+- Skill: add read-only native coding-agent memory discovery and verification
+  guidance.
 
 ## 0.1.34 - 2026-08-30
 
