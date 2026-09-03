@@ -115,6 +115,8 @@ if pointer.get("skillUrl") != "https://raw.githubusercontent.com/nessielabs/ness
 if pointer.get("updateCommand") != "openclaw plugins update @nessielabs/nessie-openclaw":
     raise SystemExit("skill-version.json updateCommand must be the plugin update command")
 for needle in [
+    "nessie_skill_analytics_overview",
+    "recentUses.nextCursor",
     "check-in",
     "search",
     "read",

@@ -4,6 +4,10 @@ All notable changes to `@nessielabs/nessie-openclaw` are documented here. This
 project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html); each
 release is tagged `vX.Y.Z` on the commit that carries that version.
 
+## 0.1.37 - 2026-09-03
+
+- Skill: document `nessie_analytics` (with `hour` granularity) and the new `nessie_skill_analytics_overview` and `nessie_skill_analytics` tools.
+
 ## 0.1.36 - 2026-09-01
 
 - Skill: add read-only native coding-agent memory discovery, verification
