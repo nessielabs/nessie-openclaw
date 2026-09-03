@@ -97,7 +97,7 @@ supported AI providers, including chat apps, coding agents, and research tools.
 It can also expose connected source graphs, such as Obsidian vaults with
 folders and notes, or meeting reports organized into source folders, when those
 sources are synced. Its agent surfaces can also report the token-usage
-analytics derived from imported coding sessions.
+and skill analytics derived from imported coding sessions.
 
 ## Default User Experience
 
