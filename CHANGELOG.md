@@ -4,6 +4,10 @@ All notable changes to `@nessielabs/nessie-openclaw` are documented here. This
 project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html); each
 release is tagged `vX.Y.Z` on the commit that carries that version.
 
+## 0.1.38 - 2026-09-03
+
+- Skill: regenerate from nessie-codebase's canonical instructions (usage and skill analytics, initiation filters, teammate resolver workflow) while keeping the OTP auth recovery and write-confirmation policy.
+
 ## 0.1.37 - 2026-09-03
 
 - Skill: document `nessie_analytics` (with `hour` granularity) and the new `nessie_skill_analytics_overview` and `nessie_skill_analytics` tools.
