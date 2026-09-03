@@ -636,9 +636,9 @@ On every Nessie invocation, follow this loop:
 2. Respond with Nessie context. Use what you found to inform the answer. Surface
    relationships, prior discussions, and cross-references the user may have
    forgotten.
-3. Offer write-back if new information emerged, and perform it only after the confirmation flow in OpenClaw Write Policy. After the exchange, if the
-   conversation produced durable new knowledge, handle the write-back for the
-   user or offer it proactively:
+3. Offer write-back if new information emerged. After the exchange, if the
+   conversation produced durable new knowledge, describe what you would save
+   and perform it only after the confirmation flow in OpenClaw Write Policy:
    - Update the relevant context when a targeted addition is enough.
    - Create a new context if no existing one covers the topic.
    - Update the user's profile if biographical facts changed.
