@@ -65,8 +65,6 @@ if not runtime_version:
 if runtime_version.group(1) != package_version:
     raise SystemExit("index.js PLUGIN_VERSION must match package.json version")
 for needle in [
-    "nessie_skill_analytics_overview",
-    "recentUses.nextCursor",
     "registerCli",
     "openclaw nessie init",
     "mcp",
@@ -117,6 +115,8 @@ if pointer.get("skillUrl") != "https://raw.githubusercontent.com/nessielabs/ness
 if pointer.get("updateCommand") != "openclaw plugins update @nessielabs/nessie-openclaw":
     raise SystemExit("skill-version.json updateCommand must be the plugin update command")
 for needle in [
+    "nessie_skill_analytics_overview",
+    "recentUses.nextCursor",
     "check-in",
     "search",
     "read",
