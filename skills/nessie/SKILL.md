@@ -1,7 +1,7 @@
 ---
 name: nessie
 description: Search and read the user's Nessie context library from OpenClaw through hosted MCP.
-version: 0.1.38
+version: 0.1.39
 ---
 
 # Nessie for OpenClaw
@@ -964,6 +964,26 @@ vaults, folders) are listed with `nessie_ls`; files (contexts, notes,
 transcripts, profile sections, single messages) are read with `nessie_cat`,
 `nessie_head`, or `nessie_tail`. A node can be both. Copy the `id` from any row
 to read, search, or traverse deeper.
+
+### Ingested local files
+
+Files imported from a selected Mac or Windows folder are available here after
+Cloud Sync uploads them. This hosted surface cannot scan the user's disk or see
+an import that exists only in the local runtime. A successful local CLI read
+does not establish hosted access; respect any returned cloud-sync notice.
+
+Use `nessie_ls` with `sourceType: "local_folder"`, then browse the returned
+folder IDs. Read a file's extracted text with `nessie_cat` using its node ID.
+For a filename, person, or exact phrase, use `nessie_grep` with
+`type: "local_folder"` and `literal: true`; do not restrict files to transcript
+or repository filters. Text access does not imply access to an original PDF
+preview. If the file is missing, check its selected source and sync status
+before concluding it was never imported.
+
+When creating a context from a file, include its returned node ID in the
+creation tool's provenance sources and use canonical inline node links for
+references. These relationships let the user navigate from the context graph
+back to the file. A link alone does not grant another person access.
 
 ### Native coding-agent memory
 
