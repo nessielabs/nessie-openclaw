@@ -6,7 +6,7 @@ release is tagged `vX.Y.Z` on the commit that carries that version.
 
 ## 0.1.39 - 2026-09-08
 
-- Skill: update the bundled Nessie guidance.
+- Skill: browse and search synced local files, read their extracted text, and preserve file references in generated contexts; explain when Cloud Sync is required.
 
 ## 0.1.38 - 2026-09-03
 
