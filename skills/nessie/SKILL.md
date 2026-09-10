@@ -1,7 +1,7 @@
 ---
 name: nessie
 description: Search and read the user's Nessie context library from OpenClaw through hosted MCP.
-version: 0.1.39
+version: 0.1.40
 ---
 
 # Nessie for OpenClaw
@@ -98,6 +98,8 @@ It can also expose connected source graphs, such as Obsidian vaults with
 folders and notes, or meeting reports organized into source folders, when those
 sources are synced. Its agent surfaces can also report the token-usage
 and skill analytics derived from imported coding sessions.
+ChatGPT Projects (`chatgpt_project`) are read-only directories containing chats;
+list a Project to find the conversations to read and cite.
 
 ## Default User Experience
 
@@ -139,7 +141,7 @@ can see.
 An integration/source-root grant normally covers every readable child beneath
 that root. Coding integrations can instead carry a positive set of selected
 repositories. Individual conversation or agent-session nodes can also be shared
-directly.
+directly. ChatGPT Project grants support Viewer access only.
 
 Removing inherited access from one child narrows the broader grant; it does not
 unshare the whole parent:
@@ -306,6 +308,8 @@ Use source browsing before search when the user asks what is available, wants
 to inspect a vault or folder, or is unsure which source world contains the
 answer. Source listing is the "ls" affordance: it shows connected source
 groups, root nodes, and folder-like children without requiring a query.
+List containers without a transcript-only filter: direct-child filtering hides
+subdirectories and does not search their chats.
 
 For navigational queries - when the user asks for a specific artifact by name
 (task log, daily journal, a specific file) - prefer source browsing over
