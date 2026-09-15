@@ -1,7 +1,7 @@
 ---
 name: nessie
 description: Search and read the user's Nessie context library from OpenClaw through hosted MCP.
-version: 0.1.39
+version: 0.1.40
 ---
 
 # Nessie for OpenClaw
@@ -98,6 +98,8 @@ It can also expose connected source graphs, such as Obsidian vaults with
 folders and notes, or meeting reports organized into source folders, when those
 sources are synced. Its agent surfaces can also report the token-usage
 and skill analytics derived from imported coding sessions.
+ChatGPT Projects (`chatgpt_project`) are read-only directories containing chats;
+list a Project to find the conversations to read and cite.
 
 ## Default User Experience
 
@@ -139,7 +141,7 @@ can see.
 An integration/source-root grant normally covers every readable child beneath
 that root. Coding integrations can instead carry a positive set of selected
 repositories. Individual conversation or agent-session nodes can also be shared
-directly.
+directly. ChatGPT Project grants support Viewer access only.
 
 Removing inherited access from one child narrows the broader grant; it does not
 unshare the whole parent:
@@ -306,6 +308,8 @@ Use source browsing before search when the user asks what is available, wants
 to inspect a vault or folder, or is unsure which source world contains the
 answer. Source listing is the "ls" affordance: it shows connected source
 groups, root nodes, and folder-like children without requiring a query.
+List containers without a transcript-only filter: direct-child filtering hides
+subdirectories and does not search their chats.
 
 For navigational queries - when the user asks for a specific artifact by name
 (task log, daily journal, a specific file) - prefer source browsing over
@@ -1073,7 +1077,22 @@ Use `nessie_ls` for source discovery and hierarchy traversal:
   `memory`, or `meeting` to scope the overview. Prefer the provider-neutral `meeting`
   category unless the user explicitly asks for one provider
 - pass `parentId` to list a directory's direct children (an Obsidian vault or
-  folder, a meeting-source root, etc.)
+  folder, a meeting-source root, etc.). Listings are flat: `since` / `until`
+  bound the listed rows' own updated times (ISO instants, or `yyyy-mm-dd` with
+  `timezone`), so a folder whose contents changed is not surfaced by a dated
+  listing of its parent
+- pass `recursive: true` with a `parentId` for the CLI's `find`: every
+  descendant at any depth, flat and newest first, with the same filters and an
+  exact total. This is the reliable answer to "what is my most recent context"
+  and "what changed recently anywhere under this folder or source":
+  `nessie_ls` with the Contexts root id, `recursive: true`, and `since` returns
+  contexts filed inside folders that the flat root listing hides. Messages are
+  excluded unless the parent is a transcript. It is not supported on the Chats
+  root or on a non-directory node, and it needs a `parentId`; those return an
+  error rather than an empty result
+- the Contexts root lists folders first, then by name, on every surface; pass
+  `sort: "updated"` for newest first at that level (the CLI's `ls -t`). Other
+  listings are already newest first
 - pass `initiated` as `human`, `agent`, or `automation` to retain classified
   session nodes with that launch mechanic among those direct children. This
   filter does not recurse; list containers unfiltered and traverse them before
