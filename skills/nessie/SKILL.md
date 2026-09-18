@@ -1,7 +1,7 @@
 ---
 name: nessie
 description: Search and read the user's Nessie context library from OpenClaw through hosted MCP.
-version: 0.1.40
+version: 0.1.41
 ---
 
 # Nessie for OpenClaw
@@ -1132,15 +1132,37 @@ for both incoming paths, always excluding the user's own corpus. `owner: "team"`
 default, tuned for fuzzy, conceptual queries, so it under-returns short
 exact-token lookups; pass `literal: true` whenever the query is a name, email,
 UUID, error code, file path, other identifier, or an exact quoted wording.
-Literal mode matches the whole query
-string as a contiguous substring, so split a natural-language description into
-salient exact terms rather than treating it as one phrase. Deciding a query is a
+Cloud literal matching follows the configured Discovery Engine search behavior.
+Local literal matching uses a contiguous substring. Use salient exact terms
+when looking up names or identifiers. Deciding a query is a
 name or identifier lookup is your call: when a hybrid grep on a proper noun comes
 back thin or empty, rerun it with `literal: true` before concluding Nessie has
 nothing - that under-return is a search-mode artifact, not absence of data. Pass
 `parentId` to restrict the search to a node and its descendants — the
 recursive-search affordance. Pass `repos` (canonical repoKeys) to narrow to
 specific git repos; that filter excludes everything not tied to a repo.
+
+Use `type: "email"` to search imported email messages. `sender`, `recipient`
+(any To/Cc/Bcc), `to`, `cc`, `bcc`, and `subject` narrow the same matching
+message. Mailbox filters accept case-insensitive exact email addresses or
+literal display-name substrings; `subject` is a literal substring. A name can
+match multiple people. These are email headers; `owner` still identifies the
+Nessie source owner. The result's message ID reads that message, and its
+`threadId`, when readable, reads the complete conversation. `nessie_ls` on a
+thread lists its actual message children. Email reads retain full bodies,
+quoted replies, and available ordered recipient headers. This searches only
+imported mail; it does not query Gmail or Outlook live or retrieve attachments.
+
+When the task needs more results, pass the returned `pageToken` to
+`nessie_grep`, keeping all other parameters unchanged. Do not paginate by
+default. A sparse filtered page may have no results and still provide a next
+token. Continue until the token is absent only when the response reports
+`exhaustive: true`. When `exhaustive` is false, `candidateLimit` describes the
+bounded relevance pool; an absent token means that pool is exhausted, not that
+the full corpus has no additional literal matches. Narrow the scope or use
+literal matching when completeness matters.
+Tokens resume a live search, not a frozen mailbox snapshot; concurrent indexing
+can change results. Recheck stable message/slice IDs during long traversals.
 
 Pass `initiated` as `human`, `agent`, or `automation` to restrict transcript
 hits by session launch mechanics. Unlike `nessie_ls`, parent-scoped
@@ -1194,15 +1216,17 @@ attributing work. Never infer ownership from an integration display name,
 provider account email, or machine label — those can differ from the
 authenticated Nessie owner.
 
-## Incoming shares and source owners
+## Integrations, incoming shares, and source owners
 
-Use `nessie_integration_list` first for incoming shared sources; each root's
+Use `nessie_integration_list` to discover the authenticated user's personal and
+incoming shared integrations. It returns only actual integration roots, not
+native folders, contexts, skills, or skill bundles. For shared roots,
 `sharedVia` distinguishes `direct_shared` from `team_shared`. Use
 `nessie_team_list` when the request is specifically about team-derived work.
 `nessie_team_list` returns readable teams and shared resources.
-`nessie_integration_list` returns incoming shared roots with provenance fields such
-as `teamId`, `teamName`, `ownerUserId`, `ownerDisplayName`, `ownerEmail`,
-`sharedVia`, `status`, and `platform`. A direct sharer need not appear in
+`nessie_integration_list` returns integration roots with provenance fields such
+as `ownerUserId`, `ownerDisplayName`, `ownerEmail`, `status`, and `platform`,
+plus `teamId`, `teamName`, and `sharedVia` for incoming shares. A direct sharer need not appear in
 `nessie_team_list`; use the integration/root `sourceOwner` instead.
 Do not use incoming shared roots as the default for first-person questions.
 Trace content always requires its own explicit grant: a context's provenance
