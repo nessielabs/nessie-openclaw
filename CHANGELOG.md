@@ -4,6 +4,11 @@ All notable changes to `@nessielabs/nessie-openclaw` are documented here. This
 project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html); each
 release is tagged `vX.Y.Z` on the commit that carries that version.
 
+## 0.1.42 - 2026-09-18
+
+- Skill: require an IANA `timezone` for skill analytics and use the caller's local 30-day window; document independent user-feedback pagination with `feedbackLimit` and `feedbackCursor`.
+- Skill: document `nessie_sharing_get`, `nessie_sharing_add`, and `nessie_sharing_remove` for inspecting and managing direct grants on owned integrations, sessions, ChatGPT Projects, contexts, and folders, including scope and role restrictions.
+
 ## 0.1.41 - 2026-09-18
 
 - Skill: update the bundled Nessie guidance.
