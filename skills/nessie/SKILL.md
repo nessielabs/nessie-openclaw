@@ -1,7 +1,7 @@
 ---
 name: nessie
 description: Search and read the user's Nessie context library from OpenClaw through hosted MCP.
-version: 0.1.41
+version: 0.1.42
 ---
 
 # Nessie for OpenClaw
@@ -945,16 +945,18 @@ summary, trend buckets, a per-person breakdown with per-agent counts, and
 with a `failure` stage and reason when one was evaluated. Read the originating
 session with `nessie_cat` on `sessionId` when the user asks what happened in a
 failed run, and page recent invocations with `recentLimit` and the returned
-`recentUses.nextCursor`.
+`recentUses.nextCursor`. It also returns independently paginated user feedback;
+page that list with `feedbackLimit` and `feedback.nextCursor` as
+`feedbackCursor`.
 
-Both tools default to the trailing 30 local days in UTC day buckets; pass the
-user's IANA `timezone` when known and `since`/`until` as `yyyy-mm-dd` when the
-user names a period. Granularity accepts `hour`, `day`, `week`, `month`, or
-`year`. `teamId` requires creator/admin access to that team and covers only
-sessions members have shared; `sourceKind` narrows to one agent, such as
-`claude_code_chat` or `codex_chat`. Outcomes come from Nessie's
-per-invocation evaluation, so `unknown` means the invocation was not
-evaluated, not that it failed.
+Both tools require the user's IANA `timezone` because a hosted connector cannot
+infer the caller's local timezone. They default to the trailing 30 local days
+in that timezone; pass `since`/`until` as `yyyy-mm-dd` when the user names a
+period. Granularity accepts `hour`, `day`, `week`, `month`, or `year`. `teamId`
+requires creator/admin access to that team and covers only sessions members
+have shared; `sourceKind` narrows to one agent, such as `claude_code_chat` or
+`codex_chat`. Outcomes come from Nessie's per-invocation evaluation, so
+`unknown` means the invocation was not evaluated, not that it failed.
 
 ## Filesystem model
 
@@ -1265,9 +1267,17 @@ retry.
 Personal direct grants are not team resources. When the user provides a private
 node link or node ID, read that target directly instead of requiring it to
 appear in `nessie_team_list`. The read still succeeds only when the authenticated
-user has an applicable personal or team grant. MCP exposes the effective graph,
-not sharing mutations: do not delete a node or conversation as a substitute for
-unsharing it.
+user has an applicable personal or team grant.
+
+Use `nessie_sharing_get` to inspect an owned integration account, session,
+ChatGPT Project, Nessie context, or Nessie folder's direct grants. Use
+`nessie_sharing_add` to add or update a team-wide, admins-only, named-member, or
+personal-email grant. Integration accounts accept `all`, `repos`, and `folders`
+scope; `repos` requires exact normalized repository keys and may also include
+repo-less workspace folders. Nessie contexts and folders accept `viewer` or
+`editor`; ChatGPT Projects are viewer-only. Use `nessie_sharing_remove` with a
+team, named users, or `teamACLOnly` to remove the matching direct grants. Do not
+delete a node or conversation as a substitute for unsharing it.
 
 ## Dates and timezones
 
