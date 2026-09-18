@@ -15,7 +15,10 @@ release is tagged `vX.Y.Z` on the commit that carries that version.
 
 ## 0.1.40 - 2026-09-15
 
-- Skill: update the bundled Nessie guidance.
+- Skill: `nessie_ls` gains `recursive: true`, the CLI's `find`: every descendant of a parent at any depth, newest first, and the reliable answer to "what is my most recent context".
+- Skill: the Contexts root lists folders first by name like Unix `ls`; pass `sort: "updated"` for newest first. `since` / `until` bound the listed rows' own updated times.
+- Skill: ChatGPT Projects (`chatgpt_project`) are surfaced as read-only directories of chats with Viewer-only grants.
+- Skill: conversation delete previews the title and message count before confirming.
 
 ## 0.1.39 - 2026-09-08
 
