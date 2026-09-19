@@ -6,7 +6,8 @@ release is tagged `vX.Y.Z` on the commit that carries that version.
 
 ## 0.1.43 - 2026-09-18
 
-- Skill: update the bundled Nessie guidance.
+- Skill: clarify that new direct sharing grants are limited to owned integration accounts, imported provider-chat sessions, ChatGPT Projects, Nessie contexts, and folders; Outlook threads and Nessie-native chats cannot receive new grants.
+- Skill: use `nessie_sharing_get` and `nessie_sharing_remove` to inspect and clean up direct grants on any owned node, including legacy or no-longer-shareable kinds.
 
 ## 0.1.42 - 2026-09-18
 
