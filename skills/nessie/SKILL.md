@@ -1,7 +1,7 @@
 ---
 name: nessie
 description: Search and read the user's Nessie context library from OpenClaw through hosted MCP.
-version: 0.1.42
+version: 0.1.43
 ---
 
 # Nessie for OpenClaw
@@ -140,8 +140,11 @@ can see.
 
 An integration/source-root grant normally covers every readable child beneath
 that root. Coding integrations can instead carry a positive set of selected
-repositories. Individual conversation or agent-session nodes can also be shared
-directly. ChatGPT Project grants support Viewer access only.
+repositories. Individual imported provider-chat sessions can also be shared
+directly; broader message containers such as Outlook threads and Nessie-native
+chats cannot receive new direct grants. ChatGPT Project grants support Viewer
+access only. Direct-grant inspection and removal remain available for any owned
+node so legacy grants can always be found and cleaned up.
 
 Removing inherited access from one child narrows the broader grant; it does not
 unshare the whole parent:
@@ -1269,15 +1272,16 @@ node link or node ID, read that target directly instead of requiring it to
 appear in `nessie_team_list`. The read still succeeds only when the authenticated
 user has an applicable personal or team grant.
 
-Use `nessie_sharing_get` to inspect an owned integration account, session,
-ChatGPT Project, Nessie context, or Nessie folder's direct grants. Use
-`nessie_sharing_add` to add or update a team-wide, admins-only, named-member, or
-personal-email grant. Integration accounts accept `all`, `repos`, and `folders`
-scope; `repos` requires exact normalized repository keys and may also include
+Use `nessie_sharing_get` to inspect any owned node's direct grants. Use
+`nessie_sharing_add` to add or update a grant only for an owned integration
+account, imported provider-chat session, ChatGPT Project, Nessie context, or
+Nessie folder. Integration accounts accept `all`, `repos`, and `folders` scope;
+`repos` requires exact normalized repository keys and may also include
 repo-less workspace folders. Nessie contexts and folders accept `viewer` or
 `editor`; ChatGPT Projects are viewer-only. Use `nessie_sharing_remove` with a
-team, named users, or `teamACLOnly` to remove the matching direct grants. Do not
-delete a node or conversation as a substitute for unsharing it.
+team, named users, or `teamACLOnly` to remove matching direct grants from any
+owned node, including legacy or no-longer-shareable kinds. Do not delete a node
+or conversation as a substitute for unsharing it.
 
 ## Dates and timezones
 
