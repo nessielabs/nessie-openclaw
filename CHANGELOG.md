@@ -6,7 +6,9 @@ release is tagged `vX.Y.Z` on the commit that carries that version.
 
 ## 0.1.44 - 2026-09-22
 
-- Skill: update the bundled Nessie guidance.
+- Skill: document Microsoft Teams as a `messaging` source: teams, channels, threads, and direct or group chats, browsed as a hierarchy with `nessie_ls` and read with `nessie_cat` as sender-attributed messages.
+- Skill: add `messaging` to the `nessie_ls` `sourceType` and `nessie_grep` `type` groups, and state that groups are provider-neutral (`meeting` covers every meeting recorder, `messaging` every messaging platform) with no per-provider values.
+- Skill: list `local_folder`, `email`, and `messaging` in the source-type guidance that previously omitted them.
 
 ## 0.1.43 - 2026-09-18
 
