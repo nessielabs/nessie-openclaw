@@ -4,6 +4,10 @@ All notable changes to `@nessielabs/nessie-openclaw` are documented here. This
 project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html); each
 release is tagged `vX.Y.Z` on the commit that carries that version.
 
+## 0.1.44 - 2026-09-22
+
+- Skill: update the bundled Nessie guidance.
+
 ## 0.1.43 - 2026-09-18
 
 - Skill: clarify that new direct sharing grants are limited to owned integration accounts, imported provider-chat sessions, ChatGPT Projects, Nessie contexts, and folders; Outlook threads and Nessie-native chats cannot receive new grants.

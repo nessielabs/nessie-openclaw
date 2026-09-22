@@ -1,7 +1,7 @@
 ---
 name: nessie
 description: Search and read the user's Nessie context library from OpenClaw through hosted MCP.
-version: 0.1.43
+version: 0.1.44
 ---
 
 # Nessie for OpenClaw
@@ -504,6 +504,14 @@ Source types serve different purposes:
   Browse meeting-source folders to find a meeting, read its report for the
   summary, and use meeting or all-type search when the underlying transcript is
   needed for exact verification.
+- Messaging sources contain human conversations from workplace messaging
+  platforms such as Microsoft Teams, organized as teams, channels, threads,
+  and direct or group chats. Use them when the user refers to a Teams (or
+  later Slack or Discord) message, channel, thread, or chat, or asks what a
+  colleague said outside of email and meetings. Browse the hierarchy to find a
+  thread or chat, read it for the sender-attributed messages, and use
+  all-type search, or the `messaging` type filter on surfaces that expose it,
+  for exact wording.
 - Profile sections contain structured biographical facts about the user. Check
   the profile for identity, connections, project info, and other recurring
   personal context.
@@ -1079,8 +1087,10 @@ Use `nessie_ls` for source discovery and hierarchy traversal:
   list. Collaborative folders may contain contexts and subfolders created by
   several teammates; nested listings preserve each item's actual owner
 - pass `sourceType` as `all`, `context`, `transcript`, `profile`, `obsidian`,
-  `memory`, or `meeting` to scope the overview. Prefer the provider-neutral `meeting`
-  category unless the user explicitly asks for one provider
+  `local_folder`, `memory`, `meeting`, `messaging`, or `email` to scope the
+  overview. Groups are provider-neutral: `meeting` covers every meeting
+  recorder and `messaging` every messaging platform (Microsoft Teams today);
+  there are no per-provider values
 - pass `parentId` to list a directory's direct children (an Obsidian vault or
   folder, a meeting-source root, etc.). Listings are flat: `since` / `until`
   bound the listed rows' own updated times (ISO instants, or `yyyy-mm-dd` with
@@ -1179,9 +1189,11 @@ if it specifies `kind`, use a conversation-node kind.
 
 Do not default every discovery or knowledge request to `type: "context"`. Choose `type` from intent:
 `context` for synthesized orientation, `obsidian` for notes/vaults/files/memos,
-`meeting` for recorded meetings/calls, `transcript` for prior AI conversations
-and resume state, `memory` for provider-derived project orientation that will
-be verified against primary evidence, and `all` when several are plausible. For "latest
+`meeting` for recorded meetings/calls, `messaging` for workplace chat threads,
+channels, and direct messages (Microsoft Teams), `email` for imported mail,
+`transcript` for prior AI conversations and resume state, `memory` for
+provider-derived project orientation that will be verified against primary
+evidence, and `all` when several are plausible. For "latest
 developments" or "what changed recently", search recent transcripts and notes
 (with `since`/`until`), not just contexts.
 
