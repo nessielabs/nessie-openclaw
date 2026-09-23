@@ -1,7 +1,7 @@
 ---
 name: nessie
 description: Search and read the user's Nessie context library from OpenClaw through hosted MCP.
-version: 0.1.44
+version: 0.1.45
 ---
 
 # Nessie for OpenClaw
@@ -304,6 +304,12 @@ Memory descriptors use the semantic kinds `native_memory_collection` and
 `workspacePath`, and `repoKey`. During migration, older rows may still report
 `local_folder` or `local_file`; source IDs beginning with `claude-memory` or
 `codex-memory` carry the same native-memory semantics.
+
+Documents from connected file sources (a selected local folder, a SharePoint
+document library) share one shape: folders that contain extracted-text files.
+The `document` type group spans every such source; `local_folder` and
+`sharepoint` are the per-provider narrowings, the way `meeting` spans every
+meeting recorder. Prefer the group unless the user names the provider.
 
 ## Search Strategy
 
@@ -982,18 +988,20 @@ transcripts, profile sections, single messages) are read with `nessie_cat`,
 `nessie_head`, or `nessie_tail`. A node can be both. Copy the `id` from any row
 to read, search, or traverse deeper.
 
-### Ingested local files
+### Ingested documents
 
-Files imported from a selected Mac or Windows folder are available here after
-Cloud Sync uploads them. This hosted surface cannot scan the user's disk or see
-an import that exists only in the local runtime. A successful local CLI read
-does not establish hosted access; respect any returned cloud-sync notice.
+Files imported from a selected Mac or Windows folder or from a connected
+document library such as SharePoint are available here after Cloud Sync
+uploads them. This hosted surface cannot scan the user's disk or see an import
+that exists only in the local runtime. A successful local CLI read does not
+establish hosted access; respect any returned cloud-sync notice.
 
-Use `nessie_ls` with `sourceType: "local_folder"`, then browse the returned
-folder IDs. Read a file's extracted text with `nessie_cat` using its node ID.
+Use `nessie_ls` with `sourceType: "document"`, then browse the returned folder
+and site IDs. Read a file's extracted text with `nessie_cat` using its node ID.
 For a filename, person, or exact phrase, use `nessie_grep` with
-`type: "local_folder"` and `literal: true`; do not restrict files to transcript
-or repository filters. Text access does not imply access to an original PDF
+`type: "document"` and `literal: true`; do not restrict files to transcript or
+repository filters. Pass `local_folder` or `sharepoint` instead of `document`
+only when the user names that one provider. Text access does not imply access to an original PDF
 preview. If the file is missing, check its selected source and sync status
 before concluding it was never imported.
 
@@ -1087,10 +1095,11 @@ Use `nessie_ls` for source discovery and hierarchy traversal:
   list. Collaborative folders may contain contexts and subfolders created by
   several teammates; nested listings preserve each item's actual owner
 - pass `sourceType` as `all`, `context`, `transcript`, `profile`, `obsidian`,
-  `local_folder`, `memory`, `meeting`, `messaging`, or `email` to scope the
-  overview. Groups are provider-neutral: `meeting` covers every meeting
-  recorder and `messaging` every messaging platform (Microsoft Teams today);
-  there are no per-provider values
+  `document`, `memory`, `meeting`, `messaging`, or `email` to scope the
+  overview. Groups are provider-neutral: `document` covers every connected
+  document source, `meeting` every meeting recorder, and `messaging` every
+  messaging platform (Microsoft Teams today). `local_folder` and `sharepoint`
+  narrow `document` to one provider; use them only when the user names it
 - pass `parentId` to list a directory's direct children (an Obsidian vault or
   folder, a meeting-source root, etc.). Listings are flat: `since` / `until`
   bound the listed rows' own updated times (ISO instants, or `yyyy-mm-dd` with
