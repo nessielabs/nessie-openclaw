@@ -6,7 +6,9 @@ release is tagged `vX.Y.Z` on the commit that carries that version.
 
 ## 0.1.45 - 2026-09-29
 
-- Skill: update the bundled Nessie guidance.
+- Skill: document the provider-neutral `document` group: files from a selected local folder and from a connected SharePoint document library share one shape (folders of extracted-text files), browsed with `nessie_ls` `sourceType: "document"` and searched with `nessie_grep` `type: "document"`.
+- Skill: add the provider-neutral `notes` group covering every note-taking app (Obsidian, Apple Notes), and route note, vault, and memo requests to `notes` instead of `obsidian`.
+- Skill: replace the "no per-provider values" statement with the narrowing rule: `obsidian` narrows `notes`, and `local_folder` and `sharepoint` narrow `document`, to be used only when the user names that provider.
 
 ## 0.1.44 - 2026-09-22
 
