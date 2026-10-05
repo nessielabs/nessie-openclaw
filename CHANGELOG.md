@@ -4,6 +4,10 @@ All notable changes to `@nessielabs/nessie-openclaw` are documented here. This
 project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html); each
 release is tagged `vX.Y.Z` on the commit that carries that version.
 
+## 0.1.47 - 2026-10-05
+
+- Skill: update the bundled Nessie guidance.
+
 ## 0.1.46 - 2026-10-05
 
 - Skill: add a "Skills platform" section for Nessie's managed skill library on hosted MCP: browse with `nessie_skill_ls` and `nessie_skill_stat`, create skills and bundles with `nessie_skill_create` and `nessie_skill_bundle_create`, edit package files with the `nessie_skill_file_*` tools, and check `nessie_skill_validate` after editing.
