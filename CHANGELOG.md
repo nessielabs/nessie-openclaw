@@ -4,6 +4,12 @@ All notable changes to `@nessielabs/nessie-openclaw` are documented here. This
 project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html); each
 release is tagged `vX.Y.Z` on the commit that carries that version.
 
+## 0.1.47 - 2026-10-05
+
+- Skill: document email header filters on `nessie_ls`: pass `sender`, `recipient`, `to`, `cc`, `bcc`, or `subject` with a mailbox root or an email thread as `parentId` to list mail without a search query, for example every thread the user wrote in.
+- Skill: explain what each listing returns: a mailbox lists the threads holding a matching message, a thread lists its matching messages, and `recursive: true` lists the matching messages themselves with a `thread` column.
+- Skill: state that the filtered listing is complete and newest first with an exact total, is paged with `offset`, and cannot be combined with `name` or `initiated`.
+
 ## 0.1.46 - 2026-10-05
 
 - Skill: add a "Skills platform" section for Nessie's managed skill library on hosted MCP: browse with `nessie_skill_ls` and `nessie_skill_stat`, create skills and bundles with `nessie_skill_create` and `nessie_skill_bundle_create`, edit package files with the `nessie_skill_file_*` tools, and check `nessie_skill_validate` after editing.
