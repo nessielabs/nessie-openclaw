@@ -6,7 +6,9 @@ release is tagged `vX.Y.Z` on the commit that carries that version.
 
 ## 0.1.47 - 2026-10-05
 
-- Skill: update the bundled Nessie guidance.
+- Skill: document email header filters on `nessie_ls`: pass `sender`, `recipient`, `to`, `cc`, `bcc`, or `subject` with a mailbox root or an email thread as `parentId` to list mail without a search query, for example every thread the user wrote in.
+- Skill: explain what each listing returns: a mailbox lists the threads holding a matching message, a thread lists its matching messages, and `recursive: true` lists the matching messages themselves with a `thread` column.
+- Skill: state that the filtered listing is complete and newest first with an exact total, is paged with `offset`, and cannot be combined with `name` or `initiated`.
 
 ## 0.1.46 - 2026-10-05
 
