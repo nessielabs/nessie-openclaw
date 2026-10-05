@@ -1,7 +1,7 @@
 ---
 name: nessie
 description: Search and read the user's Nessie context library from OpenClaw through hosted MCP.
-version: 0.1.45
+version: 0.1.46
 ---
 
 # Nessie for OpenClaw
@@ -975,6 +975,57 @@ have shared; `sourceKind` narrows to one agent, such as `claude_code_chat` or
 `codex_chat`. Outcomes come from Nessie's per-invocation evaluation, so
 `unknown` means the invocation was not evaluated, not that it failed.
 
+## Skills platform
+
+Nessie's skill platform is its managed library for creating, organizing,
+editing, and installing agent skills. A skill is a collaboratively editable
+package of files with a required root `SKILL.md`; a bundle groups related
+skills, and a skill in a bundle reaches every subscriber of that bundle,
+including Claude Code and Codex on their Macs. Skills and bundles are addressed
+by UUID, not by name. The skill tools return JSON.
+
+When the user asks to create, make, or build a skill without naming another
+destination, create it in the Nessie skill platform with `nessie_skill_create`
+rather than only in this agent's own skills, workflows, or files. Honor an
+explicit destination the user names.
+
+- Browse: `nessie_skill_ls` (top level, or one bundle's children) and
+  `nessie_skill_stat` (owner, access, revision, package state).
+- Create: `nessie_skill_create` writes the root `SKILL.md` from `name`,
+  `description`, and `content`; pass `parent` to create it in a bundle.
+  `nessie_skill_bundle_create` makes a top-level bundle; bundles cannot nest.
+- Edit files: `nessie_skill_file_ls`, `nessie_skill_file_cat` (defaults to
+  `SKILL.md`), `nessie_skill_file_tee` (create or wholly replace),
+  `nessie_skill_file_sed` (exact replacement, unique unless `all`),
+  `nessie_skill_file_mkdir`, `nessie_skill_file_mv`, and
+  `nessie_skill_file_rm` (`recursive` for a non-empty directory). The root
+  `SKILL.md` cannot be moved or deleted. Every write returns the package's
+  `validationStatus`; `invalid` means it cannot be installed until fixed, so
+  read back the changed file and check `nessie_skill_validate` after editing.
+- Organize: `nessie_skill_rename` changes the display name, not the
+  `SKILL.md` frontmatter name agents invoke; `nessie_skill_move` takes exactly
+  one of `to` (a bundle) or `topLevel`. Pass `ifRevision` from
+  `nessie_skill_stat` to refuse overwriting a concurrent change.
+- Remove: `nessie_skill_remove` is destructive for every collaborator, and
+  removing a bundle removes all of its skills. Use it only when the user asked
+  to delete the item: call it without `confirm` to get the preview, show that
+  to the user, and call again with `confirm: true` only after they agree,
+  passing the preview's `revision` as `ifRevision` so a newer version is never
+  deleted unseen.
+- Feedback: when a skill's instructions are incorrect, incomplete, confusing,
+  or impractical, submit Markdown with `nessie_skill_feedback` using the
+  `SKILL.md` frontmatter name. It appears in that skill's analytics.
+
+This connector cannot install into another device. To install or update a
+Nessie managed skill in an agent without a Nessie installer, fetch
+`nessie_skill_installable` and write exactly its files into that agent's own
+skills or workflows location under a folder named after the `SKILL.md`
+frontmatter name; a bundle is installed skill by skill from
+`nessie_skill_ls`. Record each skill's `packageHash` and compare it with
+`nessie_skill_stat` later to find updates. Installing changes the agent's
+behavior, so confirm with the user first. Skill sharing grants and importing
+existing local skills are managed in the Nessie app.
+
 ## Filesystem model
 
 Everything is a **node** addressed by UUID. Roots synced from the user's other
@@ -1444,11 +1495,12 @@ Treat Nessie as read-only by default. Do not call any Nessie write tool merely
 because durable knowledge emerged or because preserving it might help a future
 session.
 
-Before every persistent create, edit, move, rename, profile update, or delete:
+Before every persistent create, edit, move, rename, profile update, sharing
+change, or delete:
 
 1. Show the user a concise preview of the exact content or change, the target
-   context, folder, profile, or conversation, and whether that target is
-   personal or team-shared when known.
+   context, folder, profile, conversation, skill, or bundle, and whether that
+   target is personal or team-shared when known.
 2. Ask for explicit confirmation of that preview.
 3. Wait for a clear affirmative response after the preview before calling the
    write tool.
@@ -1461,11 +1513,32 @@ an ambiguous response, and the agent's own judgment are not consent.
 Confirmation is scoped to the exact preview: if the content, destination, target,
 or set of operations changes, show the revised preview and ask again.
 
-This policy applies to all context, folder, profile, and conversation mutations,
-including `nessie_tee`, `nessie_sed`, `nessie_replace_lines`, `nessie_mv`, `nessie_rm`,
-`nessie_mkdir`, `nessie_rename_folder`, `nessie_move_folder`, `nessie_rmdir`,
-profile update tools, and the confirmed deletion step of
-`nessie_delete_conversation`.
+This policy applies to every Nessie tool that changes stored data or who can
+read it, whether or not the tool is named here:
+
+- Context, folder, profile, and conversation mutations: `nessie_tee`,
+  `nessie_sed`, `nessie_replace_lines`, `nessie_mv`, `nessie_rm`,
+  `nessie_mkdir`, `nessie_rename_folder`, `nessie_move_folder`, `nessie_rmdir`,
+  profile update tools, `nessie_set_slice_modality`, and the confirmed deletion
+  step of `nessie_delete_conversation`.
+- Sharing changes: `nessie_sharing_add` and `nessie_sharing_remove`. The
+  preview names the node, the audience, and the role or scope.
+- Skills platform mutations: `nessie_skill_create`,
+  `nessie_skill_bundle_create`, `nessie_skill_file_tee`,
+  `nessie_skill_file_sed`, `nessie_skill_file_mkdir`, `nessie_skill_file_mv`,
+  `nessie_skill_file_rm`, `nessie_skill_rename`, `nessie_skill_move`,
+  `nessie_skill_feedback`, and the confirmed step of `nessie_skill_remove`.
+
+The Skills platform guidance above chooses where a requested skill is created;
+it does not replace this confirmation. A managed skill is shared: an edit
+reaches every collaborator, and a skill in a bundle reaches every subscriber of
+that bundle, so the preview states the skill or bundle and the files that will
+change. The `confirm` parameter of `nessie_skill_remove` and
+`nessie_delete_conversation` is the tool's own safeguard, not the user's
+consent: call the tool without it to build the preview, and pass
+`confirm: true` only after the user approves that preview. Writing a managed
+skill's files into this agent's own skills location is also a persistent change
+and follows the same flow.
 
 Prefer `nessie_replace_lines` for complete lines such as Markdown table rows
 and list items. Each array item is one line without a newline character; the
