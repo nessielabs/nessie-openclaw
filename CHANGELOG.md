@@ -4,6 +4,10 @@ All notable changes to `@nessielabs/nessie-openclaw` are documented here. This
 project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html); each
 release is tagged `vX.Y.Z` on the commit that carries that version.
 
+## 0.1.48 - 2026-10-07
+
+- Skill: update the bundled Nessie guidance.
+
 ## 0.1.47 - 2026-10-05
 
 - Skill: document email header filters on `nessie_ls`: pass `sender`, `recipient`, `to`, `cc`, `bcc`, or `subject` with a mailbox root or an email thread as `parentId` to list mail without a search query, for example every thread the user wrote in.
