@@ -1,7 +1,7 @@
 ---
 name: nessie
 description: Search and read the user's Nessie context library from OpenClaw through hosted MCP.
-version: 0.1.47
+version: 0.1.48
 ---
 
 # Nessie for OpenClaw
@@ -142,8 +142,9 @@ An integration/source-root grant normally covers every readable child beneath
 that root. Coding integrations can instead carry a positive set of selected
 repositories. Individual imported provider-chat sessions can also be shared
 directly; broader message containers such as Outlook threads and Nessie-native
-chats cannot receive new direct grants. ChatGPT Project grants support Viewer
-access only. Direct-grant inspection and removal remain available for any owned
+chats cannot receive new direct grants. ChatGPT Project grants, and Apple Notes
+or Granola folder and note grants, support Viewer access with scope `all` only: they cover the
+shared node and its live contents, never the rest of the integration. Direct-grant inspection and removal remain available for any owned
 node so legacy grants can always be found and cleaned up.
 
 Removing inherited access from one child narrows the broader grant; it does not
@@ -1358,11 +1359,13 @@ user has an applicable personal or team grant.
 
 Use `nessie_sharing_get` to inspect any owned node's direct grants. Use
 `nessie_sharing_add` to add or update a grant only for an owned integration
-account, imported provider-chat session, ChatGPT Project, Nessie context, or
-Nessie folder. Integration accounts accept `all`, `repos`, and `folders` scope;
+account, imported provider-chat session, ChatGPT Project, Apple Notes or Granola
+folder or note, Nessie context, or Nessie folder. Integration accounts accept `all`, `repos`, and `folders` scope;
 `repos` requires exact normalized repository keys and may also include
 repo-less workspace folders. Nessie contexts and folders accept `viewer` or
-`editor`; ChatGPT Projects are viewer-only. Use `nessie_sharing_remove` with a
+`editor`; ChatGPT Projects and Apple Notes or Granola folders and notes are
+viewer-only and share their whole subtree; a Granola note includes its
+transcript. Use `nessie_sharing_remove` with a
 team, named users, or `teamACLOnly` to remove matching direct grants from any
 owned node, including legacy or no-longer-shareable kinds. Do not delete a node
 or conversation as a substitute for unsharing it.
