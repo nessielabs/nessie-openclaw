@@ -6,7 +6,8 @@ release is tagged `vX.Y.Z` on the commit that carries that version.
 
 ## 0.1.48 - 2026-10-07
 
-- Skill: update the bundled Nessie guidance.
+- Skill: list Apple Notes and Granola folders and notes among the nodes `nessie_sharing_add` can share, alongside integration accounts, imported provider-chat sessions, ChatGPT Projects, and Nessie contexts and folders.
+- Skill: state that these grants are Viewer-only with scope `all`, like ChatGPT Projects: a grant covers the shared folder or note and its live contents, never the rest of the integration, and a shared Granola note includes its transcript.
 
 ## 0.1.47 - 2026-10-05
 
