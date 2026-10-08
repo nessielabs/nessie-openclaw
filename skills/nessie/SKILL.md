@@ -1,7 +1,7 @@
 ---
 name: nessie
 description: Search and read the user's Nessie context library from OpenClaw through hosted MCP.
-version: 0.1.48
+version: 0.1.49
 ---
 
 # Nessie for OpenClaw
@@ -206,6 +206,13 @@ MCP reads and writes join the same document. A private context that has never
 been enrolled can still use the legacy local Node/slice write path until Cloud
 Sync or sharing enrolls it. Folder placement and provenance are graph metadata
 rather than fields inside the collaborative document.
+
+### Skills and skill bundles
+
+Skills and skill bundles support Viewer and Editor access with the same
+personal and team audiences as contexts and folders. Viewer can read and
+install the skill; Editor can also edit it. A bundle grant covers every skill
+in the bundle. Only the owner manages a skill's or bundle's outgoing grants.
 
 ### Private and public links
 
@@ -1024,8 +1031,10 @@ skills or workflows location under a folder named after the `SKILL.md`
 frontmatter name; a bundle is installed skill by skill from
 `nessie_skill_ls`. Record each skill's `packageHash` and compare it with
 `nessie_skill_stat` later to find updates. Installing changes the agent's
-behavior, so confirm with the user first. Skill sharing grants and importing
-existing local skills are managed in the Nessie app.
+behavior, so confirm with the user first. Share a skill or bundle with
+`nessie_sharing_add`, passing its UUID from `nessie_skill_ls`; only the owner
+can manage its grants. Importing existing local skills is managed in the
+Nessie app.
 
 ## Filesystem model
 
@@ -1360,10 +1369,13 @@ user has an applicable personal or team grant.
 Use `nessie_sharing_get` to inspect any owned node's direct grants. Use
 `nessie_sharing_add` to add or update a grant only for an owned integration
 account, imported provider-chat session, ChatGPT Project, Apple Notes or Granola
-folder or note, Nessie context, or Nessie folder. Integration accounts accept `all`, `repos`, and `folders` scope;
+folder or note, Nessie context, Nessie folder, skill, or skill bundle. Integration accounts accept `all`, `repos`, and `folders` scope;
 `repos` requires exact normalized repository keys and may also include
-repo-less workspace folders. Nessie contexts and folders accept `viewer` or
-`editor`; ChatGPT Projects and Apple Notes or Granola folders and notes are
+repo-less workspace folders. Nessie contexts, folders, skills, and skill
+bundles accept `viewer` or `editor`; a skill or bundle uses scope `all`, and a
+bundle grant covers every skill in the bundle, so `nessie_sharing_get` on a
+skill inside a shared bundle lists only that skill's own direct grants.
+ChatGPT Projects and Apple Notes or Granola folders and notes are
 viewer-only and share their whole subtree; a Granola note includes its
 transcript. Use `nessie_sharing_remove` with a
 team, named users, or `teamACLOnly` to remove matching direct grants from any

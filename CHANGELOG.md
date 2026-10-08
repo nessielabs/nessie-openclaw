@@ -4,9 +4,15 @@ All notable changes to `@nessielabs/nessie-openclaw` are documented here. This
 project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html); each
 release is tagged `vX.Y.Z` on the commit that carries that version.
 
+## 0.1.49 - 2026-10-08
+
+- Skill: list skills and skill bundles among the nodes `nessie_sharing_add` can share, passing the UUID from `nessie_skill_ls`. Skill sharing is no longer described as managed only in the Nessie app; only the owner can manage a skill's or bundle's grants.
+- Skill: state that skills and bundles accept `viewer` or `editor` with scope `all`, that a bundle grant covers every skill in the bundle, and that `nessie_sharing_get` on a skill inside a shared bundle lists only that skill's own direct grants.
+
 ## 0.1.48 - 2026-10-07
 
-- Skill: update the bundled Nessie guidance.
+- Skill: list Apple Notes and Granola folders and notes among the nodes `nessie_sharing_add` can share, alongside integration accounts, imported provider-chat sessions, ChatGPT Projects, and Nessie contexts and folders.
+- Skill: state that these grants are Viewer-only with scope `all`, like ChatGPT Projects: a grant covers the shared folder or note and its live contents, never the rest of the integration, and a shared Granola note includes its transcript.
 
 ## 0.1.47 - 2026-10-05
 
