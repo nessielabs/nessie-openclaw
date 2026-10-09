@@ -4,6 +4,10 @@ All notable changes to `@nessielabs/nessie-openclaw` are documented here. This
 project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html); each
 release is tagged `vX.Y.Z` on the commit that carries that version.
 
+## 0.1.50 - 2026-10-09
+
+- Runtime: update the MCP SDK and its proxy dependency to fix published security advisories.
+
 ## 0.1.49 - 2026-10-08
 
 - Skill: list skills and skill bundles among the nodes `nessie_sharing_add` can share, passing the UUID from `nessie_skill_ls`. Skill sharing is no longer described as managed only in the Nessie app; only the owner can manage a skill's or bundle's grants.
