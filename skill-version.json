@@ -1,6 +1,6 @@
 {
   "surface": "openclaw",
-  "version": "0.1.49",
+  "version": "0.1.50",
   "skillUrl": "https://raw.githubusercontent.com/nessielabs/nessie-openclaw/main/skills/nessie/SKILL.md",
   "updateCommand": "openclaw plugins update @nessielabs/nessie-openclaw"
 }

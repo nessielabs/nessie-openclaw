@@ -1,7 +1,7 @@
 ---
 name: nessie
 description: Search and read the user's Nessie context library from OpenClaw through hosted MCP.
-version: 0.1.49
+version: 0.1.50
 ---
 
 # Nessie for OpenClaw
