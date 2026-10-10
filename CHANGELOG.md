@@ -4,6 +4,10 @@ All notable changes to `@nessielabs/nessie-openclaw` are documented here. This
 project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html); each
 release is tagged `vX.Y.Z` on the commit that carries that version.
 
+## 0.1.51 - 2026-10-10
+
+- Skill: update the bundled Nessie guidance.
+
 ## 0.1.50 - 2026-10-09
 
 - Runtime: update the MCP SDK and its proxy dependency to fix published security advisories.
