@@ -6,7 +6,10 @@ release is tagged `vX.Y.Z` on the commit that carries that version.
 
 ## 0.1.51 - 2026-10-16
 
-- Skill: update the bundled Nessie guidance.
+- Skill: add a "Skill suggestions" section for `nessie_skill_suggestion_ls`, `nessie_skill_suggestion_show`, and `nessie_skill_suggestion_apply`: list Nessie's proposed edits to skills the user owns (`update`) and proposed new skills (`create`), and read an edit's current and proposed `SKILL.md` or a new skill's proposed instructions.
+- Skill: when the user asks what to improve in their skills, read the skill analytics tools for which skills fail and why and the suggestions for fixes Nessie already proposed. Review an edit with the user before `nessie_skill_suggestion_apply`, which refuses when the skill changed since the suggestion and can be undone from revision history; accept a new-skill suggestion with `nessie_skill_create`.
+- Skill: when an existing skill's files under `~/.claude/skills` or `~/.codex/skills` are readable, import it with `nessie_skill_import` (`agent`, the directory `name`, and every text file unchanged) instead of recreating it with `nessie_skill_create`, so the Nessie app links that directory as the installed copy. Plugin skills and whole folders still import from the Nessie app.
+- Skill: list `nessie_skill_import` and `nessie_skill_suggestion_apply` among the skills platform writes that require a preview and the user's explicit confirmation under the OpenClaw write policy.
 
 ## 0.1.50 - 2026-10-09
 
