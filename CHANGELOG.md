@@ -4,6 +4,17 @@ All notable changes to `@nessielabs/nessie-openclaw` are documented here. This
 project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html); each
 release is tagged `vX.Y.Z` on the commit that carries that version.
 
+## 0.1.52 - 2026-10-22
+
+- Skill: document `startedFrom`, `startedSessions`, and `startedSessionCount` on a session's `nessie_stat`: when resuming or taking over a started session, read its `startedFrom` session for the original brief and decisions, and from a parent, follow `startedSessions` to the work it handed off, such as Claude Desktop side sessions and forks.
+- Skill: describe Slack as a `messaging` source alongside Microsoft Teams, and add an "Imported messaging" section: a Slack channel or DM reads as its top-level messages and lists one `slack_thread` per message with replies, a thread reads its parent message and then the replies, and `nessie_stat` reports `threads` and `messages` counts.
+- Skill: add a "Structured queries" section for `nessie_query` and `nessie_kind`: list email, meeting, AI session, and messaging nodes by fields, relations, and signals with a CEL `where` expression, plus `select`, `sort`, `owner`, and `limit`/`offset` paging.
+- Skill: document the profile edit tools `nessie_edit_profile_field`, `nessie_edit_profile_text`, `nessie_add_profile_card`, and `nessie_remove_profile_card` alongside `nessie_update_profile_card`.
+- Skill: explain `nessie_grep` result order: literal, email, header-filtered, and `since` searches return the newest matches first, other searches rank by relevance, and `sort` overrides either. A bounded newest-first search may omit older matches.
+- Skill: show `from:`/`to:`/`cc:` lines and the provider's `providerMessageId` and `providerThreadId` on email hits. Read and search synced mail in Nessie, use a mail connector only to draft or send, and find the latest email from or to a person by listing the mailbox with `sender` or `recipient`.
+- Skill: document the `platform`, `status`, and `teamId` filters on `nessie_integration_list`.
+- Skill: add a "Product feedback" section for `nessie_feedback`, used only when the user asks to send feedback to the Nessie team.
+
 ## 0.1.51 - 2026-10-16
 
 - Skill: add a "Skill suggestions" section for `nessie_skill_suggestion_ls`, `nessie_skill_suggestion_show`, and `nessie_skill_suggestion_apply`: list Nessie's proposed edits to skills the user owns (`update`) and proposed new skills (`create`), and read an edit's current and proposed `SKILL.md` or a new skill's proposed instructions.
