@@ -1,7 +1,7 @@
 ---
 name: nessie
 description: Search and read the user's Nessie context library from OpenClaw through hosted MCP.
-version: 0.1.51
+version: 0.1.52
 ---
 
 # Nessie for OpenClaw
@@ -282,6 +282,15 @@ machine hosts, cron environment variables, or webhook-shaped content; use the
 derived field and retain `executionMode` when raw evidence is useful for
 debugging.
 
+A session's `stat` can also name related sessions. `startedFrom` is the session
+this one was started from, and `startedSessions` (with `startedSessionCount`)
+lists the sessions it started, such as Claude Desktop side sessions and forks.
+For a resume or takeover of a started session, read its `startedFrom` session
+for the original brief and decisions; from a parent, follow `startedSessions`
+to see the work it handed off. The fields appear only when the other session is
+readable. A started session can still be human-initiated (a fork the user
+opened), so keep using `initiated` for launch mechanics.
+
 ## Native coding-agent memory
 
 Claude Code and Codex may synthesize project-scoped Markdown memory from prior
@@ -519,13 +528,14 @@ Source types serve different purposes:
   summary, and use meeting or all-type search when the underlying transcript is
   needed for exact verification.
 - Messaging sources contain human conversations from workplace messaging
-  platforms such as Microsoft Teams, organized as teams, channels, threads,
-  and direct or group chats. Use them when the user refers to a Teams (or
-  later Slack or Discord) message, channel, thread, or chat, or asks what a
+  platforms such as Microsoft Teams and Slack, organized as workspaces or
+  teams, channels, threads, and direct or group chats. Use them when the user
+  refers to a Teams or Slack message, channel, thread, DM, or chat, or asks what a
   colleague said outside of email and meetings. Browse the hierarchy to find a
-  thread or chat, read it for the sender-attributed messages, and use
-  all-type search, or the `messaging` type filter on surfaces that expose it,
-  for exact wording.
+  conversation and read it for the sender-attributed messages: a Teams thread
+  or chat, a Slack channel or DM (its top-level messages), or a Slack thread
+  (its parent message, then the replies). Use all-type search, or the
+  `messaging` type filter on surfaces that expose it, for exact wording.
 - Profile sections contain structured biographical facts about the user. Check
   the profile for identity, connections, project info, and other recurring
   personal context.
@@ -1140,12 +1150,21 @@ returns sparse data, call `nessie_ls` to find the user's personal transcript and
 note roots, then `nessie_grep` scoped to those roots, or browse recent children.
 Sparse profile data does not mean sparse raw data.
 
-Update structured profile cards with `nessie_update_profile_card` (`section`,
-0-based `index`, string-field `updates`). The read tool exposes the work section
-as `work`; the card update tool uses `workExperience` for that same backing
-section. Do not edit profile section nodes with `nessie_sed` — those have kinds
-such as `nessie_profile_upcoming_section` and must go through the profile card
-tool.
+Edit the profile only through the profile tools:
+
+- `nessie_edit_profile_field` sets one contact field (`name`, `preferredName`,
+  `dateOfBirth`, `email`, `phone`, `address`, `employer`, `jobTitle`).
+- `nessie_edit_profile_text` replaces the whole `biography`, `communication`,
+  or `personality` section; send the complete new text.
+- `nessie_add_profile_card`, `nessie_update_profile_card`, and
+  `nessie_remove_profile_card` add, change, or remove one card by `section`
+  and 0-based `index`. Read the section first; removing a card shifts later
+  indexes down.
+
+The read tool exposes the work section as `work`; the card tools use
+`workExperience` for that same backing section. Do not edit profile section
+nodes with `nessie_sed` — those have kinds such as
+`nessie_profile_upcoming_section` and must go through the profile tools.
 
 ## Listing: nessie_ls
 
@@ -1183,7 +1202,7 @@ Use `nessie_ls` for source discovery and hierarchy traversal:
   overview. Groups are provider-neutral: `notes` covers every note-taking app
   (Obsidian, Apple Notes), `document` every connected document source,
   `meeting` every meeting recorder, and `messaging` every messaging platform
-  (Microsoft Teams today). `obsidian` narrows `notes`, and `local_folder` and
+  (Microsoft Teams and Slack). `obsidian` narrows `notes`, and `local_folder` and
   `sharepoint` narrow `document`, to one provider; use them only when the user
   names it
 - pass `parentId` to list a directory's direct children (an Obsidian vault or
@@ -1221,8 +1240,10 @@ Use `nessie_ls` for source discovery and hierarchy traversal:
   owner.
 
 Use `nessie_stat` to see a node's metadata (kind, owner, size, dates, and, for a
-classified session, `initiated` plus raw `executionMode`) without its body — to
-size or inspect a node before reading or listing it.
+classified session, `initiated` plus raw `executionMode`, and `started from` /
+`started` lines naming the session it was started from and the sessions it
+started) without its body — to size or inspect a node before reading or listing
+it.
 
 ## Searching: nessie_grep
 
@@ -1252,6 +1273,13 @@ nothing - that under-return is a search-mode artifact, not absence of data. Pass
 recursive-search affordance. Pass `repos` (canonical repoKeys) to narrow to
 specific git repos; that filter excludes everything not tied to a repo.
 
+Results are one block per matching message or document. Literal, email,
+header-filtered, and `since` searches return the newest matches first; other
+searches rank by relevance; pass `sort: "recent"` or `sort: "relevance"` to
+override. Newest-first results come from a bounded pool of relevant matches, so
+when the response says the search is bounded, older matches may still exist:
+narrow with `since`/`until` when completeness matters.
+
 Use `type: "email"` to search imported email messages. `sender`, `recipient`
 (any To/Cc/Bcc), `to`, `cc`, `bcc`, and `subject` narrow the same matching
 message. Mailbox filters accept case-insensitive exact email addresses or
@@ -1259,9 +1287,19 @@ literal display-name substrings; `subject` is a literal substring. A name can
 match multiple people. These are email headers; `owner` still identifies the
 Nessie source owner. The result's message ID reads that message, and its
 `threadId`, when readable, reads the complete conversation. `nessie_ls` on a
-thread lists its actual message children. Email reads retain full bodies,
-quoted replies, and available ordered recipient headers. This searches only
-imported mail; it does not query Gmail or Outlook live or retrieve attachments.
+thread lists its actual message children. Email hits also show `from:`/`to:`/`cc:`
+lines and the mail provider's `providerMessageId` and `providerThreadId` (Gmail
+id/threadId, Outlook id/conversationId); `nessie_stat` shows the same id as
+`sourceId`. Email reads retain full bodies, quoted replies, and available
+ordered recipient headers. This searches only imported mail; it does not query
+Gmail or Outlook live or retrieve attachments.
+
+When the mailbox is synced, read and search mail in Nessie, and use a mail
+provider connector only to draft or send. To reply in an existing thread, pass
+the hit's `providerThreadId` to the connector instead of searching the mailbox
+again. For the latest email from or to a person, list instead of searching:
+`nessie_ls` on the mailbox with `sender` (or `recipient`) is complete and
+newest first; then list the thread and `nessie_cat` its last message.
 
 To list mail by header without a search query, pass the same filters to
 `nessie_ls` with a mailbox root or an email thread as `parentId`, for example
@@ -1295,12 +1333,76 @@ Do not default every discovery or knowledge request to `type: "context"`. Choose
 `context` for synthesized orientation, `notes` for notes/vaults/memos from any
 note-taking app (Obsidian, Apple Notes),
 `meeting` for recorded meetings/calls, `messaging` for workplace chat threads,
-channels, and direct messages (Microsoft Teams), `email` for imported mail,
+channels, and direct messages (Microsoft Teams and Slack), `email` for imported mail,
 `transcript` for prior AI conversations and resume state, `memory` for
 provider-derived project orientation that will be verified against primary
 evidence, and `all` when several are plausible. For "latest
 developments" or "what changed recently", search recent transcripts and notes
 (with `since`/`until`), not just contexts.
+
+### Imported messaging
+
+Messaging sources (Microsoft Teams and Slack) are browsed as a hierarchy with
+`nessie_ls` and searched as a group with `nessie_grep` `type: "messaging"`,
+which matches conversations and their messages. `nessie_cat` renders each
+message as "Sender: text", using the sender's display name, or their address
+when no name is known.
+
+A Teams root lists `microsoft_teams_team` and `microsoft_teams_dm` (a direct,
+group, or meeting chat); a team lists its `microsoft_teams_channel` rows, and
+a channel lists its `microsoft_teams_thread` rows (a channel post with its
+replies). Teams and channels are directories with no readable body; read a
+thread or chat.
+
+A Slack workspace root lists `slack_channel` (public, private, and Slack
+Connect) and `slack_dm` (direct or group), including archived ones. A Slack
+channel or DM is both readable and a directory: `nessie_cat` it for its
+top-level messages, and `nessie_ls` it for its `slack_thread` rows, one per
+message that has replies. Reading a thread starts with its parent message,
+then the replies. `nessie_stat` on a conversation reports what it holds:
+`threads` (a Slack channel or DM, a Teams channel) and `messages` (top-level
+messages of a Slack channel or DM, or the messages of a thread or chat).
+
+## Structured queries: nessie_query and nessie_kind
+
+Use `nessie_query` to list nodes by structured properties rather than by
+wording: email threads where both sides replied, contacts the user has written
+to, messages from one address in a date range. It answers "which ones" with an
+exact, filtered listing; use `nessie_grep` when the question is about content.
+
+Call `nessie_kind` (optionally with `kind`) first to see what a kind offers.
+`where` is a CEL boolean over the kind's names:
+
+- **Fields** are stored columns, such as `subject` or `sent_at`.
+- **Relations** reach other kinds, such as `messages` on a thread. Use them as
+  `messages.exists(m, m.sender_address == "a@b.com")`, `messages.size()`, or
+  `messages.map(m, m.sent_at).max()`.
+- **Signals** are computed properties kept up to date in the background, such
+  as `reciprocal` (at least two different senders) or `message_count`.
+
+For example, `{ kind: "email_thread", where: "recent_reciprocal && message_count > 5",
+select: ["subject", "last_message_at"], sort: "-last_message_at" }`. Operators
+are `! && || == != < <= > >= + - * / %` and `c ? a : b`; `x in ["a", "b"]`
+tests membership in a literal list. Time arithmetic uses `now`, `days(n)` and
+`hours(n)`. Strings take `s.contains(t)`, `s.startsWith(t)` and
+`s.endsWith(t)` (case-sensitive; fold case first with `s.lowerAscii()` or
+`s.upperAscii()`, e.g. `subject.lowerAscii().contains("pricing")`), `size(s)`,
+and `s.matches("(?i)pricing")` for a regular expression. Omit `where` to list
+every node of the kind.
+
+`select` returns those names in each row's `values`; `sort` orders by one name,
+`-` for descending (default: most recently updated first). Page with `limit`
+(max 200) and `offset` while `hasMore` is true. `owner` defaults to
+`all_readable` (the user's nodes plus nodes shared with them); pass `me` for only
+their own. Read a returned row with `nessie_cat` on its `id`.
+
+An invalid expression fails with a message naming the problem and the valid
+names, so fix the expression rather than retrying it. Kinds cover imported
+email (`email_thread`, `email_message`, `email_contact`), recorded meetings
+(`meeting`), AI sessions (`ai_session`) and workplace chat (Slack and Microsoft Teams):
+`messaging_message`, `messaging_thread`, `messaging_conversation` and
+`messaging_member`, a person who links to their `email_contact` by address.
+List them with `nessie_kind`.
 
 ## Reading: nessie_cat, nessie_head, nessie_tail
 
@@ -1350,6 +1452,8 @@ native folders, contexts, skills, or skill bundles. For shared roots,
 as `ownerUserId`, `ownerDisplayName`, `ownerEmail`, `status`, and `platform`,
 plus `teamId`, `teamName`, and `sharedVia` for incoming shares. A direct sharer need not appear in
 `nessie_team_list`; use the integration/root `sourceOwner` instead.
+Narrow it with exact-match `platform`, `status` (`remote` for the user's own
+roots, `team_remote` for incoming shares), or `teamId`.
 Do not use incoming shared roots as the default for first-person questions.
 Trace content always requires its own explicit grant: a context's provenance
 badge is not authority to read the trace it names.
@@ -1445,6 +1549,14 @@ nonliteral without naming a modality, infer the matching value, show the
 excerpt and `sliceId`, and proactively offer to apply it; do not call the tool
 until the user approves. There is intentionally no confirmation field in this
 tool's input schema.
+
+## Product feedback
+
+Use `nessie_feedback` (`message`, `category`: `bug`, `feature_request`, or
+`general`) only when the user asks to send feedback to the Nessie team. Hosted
+tool failures are already reported server-side, so do not file them
+automatically. Feedback about one skill's instructions goes to
+`nessie_skill_feedback` instead.
 
 ## Writing
 

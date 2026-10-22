@@ -4,6 +4,10 @@ All notable changes to `@nessielabs/nessie-openclaw` are documented here. This
 project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html); each
 release is tagged `vX.Y.Z` on the commit that carries that version.
 
+## 0.1.52 - 2026-10-22
+
+- Skill: update the bundled Nessie guidance.
+
 ## 0.1.51 - 2026-10-16
 
 - Skill: add a "Skill suggestions" section for `nessie_skill_suggestion_ls`, `nessie_skill_suggestion_show`, and `nessie_skill_suggestion_apply`: list Nessie's proposed edits to skills the user owns (`update`) and proposed new skills (`create`), and read an edit's current and proposed `SKILL.md` or a new skill's proposed instructions.
