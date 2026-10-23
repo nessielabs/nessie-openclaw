@@ -1,7 +1,7 @@
 ---
 name: nessie
 description: Search and read the user's Nessie context library from OpenClaw through hosted MCP.
-version: 0.1.52
+version: 0.1.53
 ---
 
 # Nessie for OpenClaw
@@ -872,6 +872,41 @@ avoid duplicates. Use file-backed body inputs when available for creation to
 avoid escaping issues with special characters. Organize into an appropriate
 folder.
 
+## Creating Signals
+
+A signal is a value Nessie computes for every node of one kind and keeps
+current, such as `email_thread.reciprocal`. Queries filter on signals, and so
+do wiki rules such as a Timeline's. Built-in signals cover common needs; a
+user's own signals cover what only they care about, such as "contacts I met in
+a recorded meeting in the last 30 days".
+
+A user's signals belong to that user. Nessie computes them only over the
+user's own nodes, and no one else's queries see them. A definition names
+`<kind>.<local name>`, its value type (`bool`, `int`, `double`, `string`, or
+`timestamp`), a description, and a CEL expression over one node of the kind
+that may read the kind's fields, relations, and other signals.
+
+When the user asks for a property no field or signal provides:
+
+1. Check what exists first: the kind's description and the signal list. Reuse
+   an existing signal when one fits.
+2. Preview the definition and show the user a few results, including a node
+   they named when there is one. A preview stores nothing.
+3. Create it once the user agrees. A new or revised signal is backfilling until
+   every node has a value, usually within a few minutes. Queries and kind
+   descriptions see it up to a minute after it is live, so check its status in
+   the signal list and retry before concluding a signal is broken.
+4. Verify with a query that uses it.
+
+Create signals that read each other in one request, so they are checked and
+applied together. A user may have up to 50 signals.
+
+Ask the user before two kinds of change. A user's signal under a built-in
+name replaces the built-in in that user's queries and wiki rules. Retiring a
+signal deletes its values, and queries and wiki rules that use it stop
+matching; the retire is refused while another signal reads it. Built-in
+signals cannot be retired, and team signals are not supported yet.
+
 ## Search Modality Corrections
 
 Cloud search results may include a server-owned `sliceId` and `modality`. A
@@ -1403,6 +1438,18 @@ email (`email_thread`, `email_message`, `email_contact`), recorded meetings
 `messaging_message`, `messaging_thread`, `messaging_conversation` and
 `messaging_member`, a person who links to their `email_contact` by address.
 List them with `nessie_kind`.
+
+## Your own signals: nessie_signal_*
+
+`nessie_signal_list`, `nessie_signal_preview`, `nessie_signal_create`, and
+`nessie_signal_retire` follow Creating Signals above. The list shows built-in
+signals and the user's own with `scope`, `type`, `expr`, and `status`
+(`backfilling` or `live`). Preview takes one definition (`name`, `type`,
+`description`, `expr`) and returns rows of `id`, `name`, and `value` for up to
+50 of the user's nodes; pass `nodeIds` to always include a specific node.
+Create takes `signals`, up to 20 definitions applied together. A refusal names
+the problem, such as an expression that does not compile or a signal another
+one reads; fix the definition rather than retrying it.
 
 ## Reading: nessie_cat, nessie_head, nessie_tail
 
