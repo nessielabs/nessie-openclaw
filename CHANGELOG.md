@@ -4,6 +4,10 @@ All notable changes to `@nessielabs/nessie-openclaw` are documented here. This
 project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html); each
 release is tagged `vX.Y.Z` on the commit that carries that version.
 
+## 0.1.53 - 2026-10-23
+
+- Skill: update the bundled Nessie guidance.
+
 ## 0.1.52 - 2026-10-22
 
 - Skill: document `startedFrom`, `startedSessions`, and `startedSessionCount` on a session's `nessie_stat`: when resuming or taking over a started session, read its `startedFrom` session for the original brief and decisions, and from a parent, follow `startedSessions` to the work it handed off, such as Claude Desktop side sessions and forks.
