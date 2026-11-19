@@ -1,7 +1,7 @@
 ---
 name: nessie
 description: Search and read the user's Nessie context library from OpenClaw through hosted MCP.
-version: 0.1.52
+version: 0.1.53
 ---
 
 # Nessie for OpenClaw
@@ -872,6 +872,41 @@ avoid duplicates. Use file-backed body inputs when available for creation to
 avoid escaping issues with special characters. Organize into an appropriate
 folder.
 
+## Creating Signals
+
+A signal is a value Nessie computes for every node of one kind and keeps
+current, such as `email_thread.reciprocal`. Queries filter on signals, and so
+do wiki rules such as a Timeline's. Built-in signals cover common needs; a
+user's own signals cover what only they care about, such as "contacts I met in
+a recorded meeting in the last 30 days".
+
+A user's signals belong to that user. Nessie computes them only over the
+user's own nodes, and no one else's queries see them. A definition names
+`<kind>.<local name>`, its value type (`bool`, `int`, `double`, `string`, or
+`timestamp`), a description, and a CEL expression over one node of the kind
+that may read the kind's fields, relations, and other signals.
+
+When the user asks for a property no field or signal provides:
+
+1. Check what exists first: the kind's description and the signal list. Reuse
+   an existing signal when one fits.
+2. Preview the definition and show the user a few results, including a node
+   they named when there is one. A preview stores nothing.
+3. Create it once the user agrees. A new or revised signal is backfilling until
+   every node has a value, usually within a few minutes. Queries and kind
+   descriptions see it up to a minute after it is live, so check its status in
+   the signal list and retry before concluding a signal is broken.
+4. Verify with a query that uses it.
+
+Create signals that read each other in one request, so they are checked and
+applied together. A user may have up to 50 signals.
+
+Ask the user before two kinds of change. A user's signal under a built-in
+name replaces the built-in in that user's queries and wiki rules. Retiring a
+signal deletes its values, and queries and wiki rules that use it stop
+matching; the retire is refused while another signal reads it. Built-in
+signals cannot be retired, and team signals are not supported yet.
+
 ## Search Modality Corrections
 
 Cloud search results may include a server-owned `sliceId` and `modality`. A
@@ -1170,7 +1205,8 @@ nodes with `nessie_sed` — those have kinds such as
 
 `nessie_ls` returns a compact CLI-style table — columns `kind`, `owner`,
 `updated`, `id`, `name`. Listings containing classified sessions also include
-`initiated` and `execution` columns. `owner` is `me` or the owner's email. A
+`initiated` and `execution` columns. Listing a conversation's messages adds an
+`offset` column (see Imported messaging). `owner` is `me` or the owner's email. A
 `shared` column is inserted after `owner` only when one of the user's own
 sources carries an outgoing grant; its value is a bounded headline of personal
 and team audiences — a team name, `<team> admins`, a person, or `+N` when there
@@ -1342,11 +1378,18 @@ developments" or "what changed recently", search recent transcripts and notes
 
 ### Imported messaging
 
-Messaging sources (Microsoft Teams and Slack) are browsed as a hierarchy with
-`nessie_ls` and searched as a group with `nessie_grep` `type: "messaging"`,
-which matches conversations and their messages. `nessie_cat` renders each
-message as "Sender: text", using the sender's display name, or their address
-when no name is known.
+Messaging sources (Microsoft Teams, Slack and iMessage) are browsed as a
+hierarchy with `nessie_ls` and searched as a group with `nessie_grep`
+`type: "messaging"`, which matches conversations and their messages.
+`nessie_cat` renders each message as `[sent] Sender: text`: its send time in
+UTC, then the sender's display name, or their address when no name is known.
+
+A conversation that holds only messages (an iMessage chat, a Slack thread, a
+Teams thread or chat) lists its messages with `nessie_ls`, newest first, with
+an `offset` column: the `nessie_cat` offset on the conversation that starts
+reading at that message. To read a period of a long chat, list it with
+`since`/`until`, then `nessie_cat` the chat from a row's offset, rather than
+guessing offsets.
 
 A Teams root lists `microsoft_teams_team` and `microsoft_teams_dm` (a direct,
 group, or meeting chat); a team lists its `microsoft_teams_channel` rows, and
@@ -1401,8 +1444,23 @@ names, so fix the expression rather than retrying it. Kinds cover imported
 email (`email_thread`, `email_message`, `email_contact`), recorded meetings
 (`meeting`), AI sessions (`ai_session`) and workplace chat (Slack and Microsoft Teams):
 `messaging_message`, `messaging_thread`, `messaging_conversation` and
-`messaging_member`, a person who links to their `email_contact` by address.
-List them with `nessie_kind`.
+`messaging_member`, a person who links to their `email_contact` by address,
+and texts from the Mac's Messages app (iMessage and SMS): `text_message`,
+`text_conversation` and `text_contact`, a phone number or address that links to
+the person's `email_contact` by address or Contacts card. List them with
+`nessie_kind`.
+
+## Your own signals: nessie_signal_*
+
+`nessie_signal_list`, `nessie_signal_preview`, `nessie_signal_create`, and
+`nessie_signal_retire` follow Creating Signals above. The list shows built-in
+signals and the user's own with `scope`, `type`, `expr`, and `status`
+(`backfilling` or `live`). Preview takes one definition (`name`, `type`,
+`description`, `expr`) and returns rows of `id`, `name`, and `value` for up to
+50 of the user's nodes; pass `nodeIds` to always include a specific node.
+Create takes `signals`, up to 20 definitions applied together. A refusal names
+the problem, such as an expression that does not compile or a signal another
+one reads; fix the definition rather than retrying it.
 
 ## Reading: nessie_cat, nessie_head, nessie_tail
 
